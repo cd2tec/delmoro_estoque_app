@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'stock_page.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -8,7 +8,7 @@ class ProfilePage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Gerenciar Perfis'),
         actions: [
-          PopupMenuButton<String>(
+          PopupMenuButton<String>(/*  */
             onSelected: (value) {
               // Implemente as ações para cada item do menu
               if (value == 'consultaEstoque') {
@@ -49,3 +49,4 @@ class ProfilePage extends StatelessWidget {
     // Não faz nada, já estamos na página de Gerenciar Perfis
   }
 }
+ */
