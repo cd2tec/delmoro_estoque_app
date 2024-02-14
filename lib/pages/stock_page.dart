@@ -1,52 +1,460 @@
+// ignore_for_file: library_private_types_in_public_api
+import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:flutter/material.dart';
 
-class StockPage extends StatelessWidget {
+class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
+  final String token;
 
-  const StockPage({Key? key, required this.stockItem}) : super(key: key);
+  const StockPage({Key? key, required this.token, required this.stockItem})
+      : super(key: key);
+
+  @override
+  _StockPageState createState() => _StockPageState();
+}
+
+class _StockPageState extends State<StockPage> {
+  List<Map<String, dynamic>>? promoPrice;
+
+  @override
+  void initState() {
+    super.initState();
+    _getPrice();
+  }
+
+  void _getPrice() async {
+    ApiService apiService = ApiService();
+
+    try {
+      Map<String, dynamic> response = await apiService.getPrice(
+          widget.token, widget.stockItem['seqproduto']);
+
+      List<Map<String, dynamic>> storeInfo = [];
+
+      if (response.isNotEmpty) {
+        final storeNumber = widget.stockItem['nroempresa'].toString();
+        if (response.containsKey(storeNumber)) {
+          storeInfo = List<Map<String, dynamic>>.from(response[storeNumber]);
+        } else {
+          setState(() {
+            promoPrice = null;
+          });
+          return;
+        }
+      } else {
+        setState(() {
+          promoPrice = null;
+        });
+        return;
+      }
+
+      setState(() {
+        promoPrice = storeInfo;
+      });
+
+      print(promoPrice);
+    } catch (e) {
+      setState(() {
+        promoPrice = [];
+      });
+      print('Erro ao obter dados de preço: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Consulta de Estoque - ${stockItem['nroempresa']}'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.search),
-            onPressed: () {
-              // Implemente a funcionalidade de pesquisa aqui
-            },
+        title: Text(
+          'Loja ${widget.stockItem['nroempresa']}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
           ),
-        ],
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          color: Colors.white, // Cor branca para o ícone de voltar
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
         backgroundColor: Colors.green,
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(14.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 16.0),
-            Text(
-              'Descrição: ${stockItem['descricao']}',
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8.0),
-            Text('Embalagem: ${stockItem['embalagem']}'),
-            Text('Quantidade: ${stockItem['quantidadeembalagem']}'),
-            Text('Preço Venda Normal: ${stockItem['precovendanormal']}'),
-            Text('Preço Promocional: ${stockItem['precopromocional']}'),
-            Text(
-                'Data Início Promoção: ${stockItem['datainiciopromocao'] ?? 'N/A'}'),
-            Text('Data Fim Promoção: ${stockItem['datafimpromocao'] ?? 'N/A'}'),
-            Text('Estoque Loja: ${stockItem['estoqueloja']}'),
-            Text('Estoque CD: ${stockItem['estoquedeposito']}'),
-            Text('Média Venda Diária: ${stockItem['mediavendadiaria']}'),
-            Text('Data Última Entrada: ${stockItem['dtaultentrada']}'),
-            Text('Data Última Venda: ${stockItem['dtaultvenda']}'),
-            Text('Média Venda Semanal: ${stockItem['mvendasemana']}'),
-            Text('Média Venda Mensal: ${stockItem['mvendames']}'),
+            const SizedBox(height: 14.0),
+            _buildInfoDescription(
+                'Descrição', widget.stockItem['descricao'] ?? 'N/A'),
+            _buildInfoStock('Estoque', widget.stockItem),
+            _buildInfoPackingAndQuantity(
+                'Embalagens e Quantidades', widget.stockItem),
+            _buildInfoPrices('Preços', widget.stockItem),
+            _buildInfoDates('Datas', widget.stockItem),
+            _buildInfoAverage('Médias', widget.stockItem),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildInfoDescription(String title, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          _buildInfoItem(value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoStock(String title, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 1.0),
+          _buildInfoStockItem(
+              'Estoque Loja', widget.stockItem['estoqueloja'] ?? 'N/A'),
+          _buildInfoStockItem(
+              'Estoque CD', widget.stockItem['estoquedeposito'] ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPrices(String title, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 1.0),
+          _buildInfoPricesItem(
+              'Preço Venda Normal', stockItem['precovendanormal'] ?? 'N/A'),
+          _buildInfoPricesItem('Preço Venda Promocional',
+              stockItem['precopromocional'] ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPackingAndQuantity(
+      String title, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 1.0),
+          if (promoPrice != null && promoPrice!.isNotEmpty)
+            ...promoPrice!
+                .map<Widget>((price) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildInfoPackingAndQuantityItem(
+                            'Embalagem', price['embalagem'] ?? 'N/A'),
+                        _buildInfoPackingAndQuantityItem('Quantidade',
+                            price['qtdembalagem'].toString() ?? 'N/A'),
+                        _buildInfoPackingAndQuantityItem(
+                            'Preço', price['precobase'].toString() ?? 'N/A'),
+                      ],
+                    ))
+                .toList(),
+          if (promoPrice == null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoPackingAndQuantityItem(
+                    'Embalagem', stockItem['embalagem'] ?? 'N/A'),
+                _buildInfoPackingAndQuantityItem(
+                    'Quantidade', stockItem['quantidadeembalagem'] ?? 'N/A'),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoDates(String title, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 1.0),
+          _buildInfoDatesItem(
+              'Data Início Promoção', stockItem['datainiciopromocao'] ?? 'N/A'),
+          _buildInfoDatesItem(
+              'Data Fim Promoção', stockItem['datafimpromocao'] ?? 'N/A'),
+          _buildInfoDatesItem(
+              'Data Última Entrada', stockItem['dtaultentrada'] ?? 'N/A'),
+          _buildInfoDatesItem(
+              'Data Última Venda', stockItem['dtaultvenda'] ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoAverage(String title, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 1.0),
+          _buildInfoAverageItem('Média Venda Diária',
+              widget.stockItem['mediavendadiaria'] ?? 'N/A'),
+          _buildInfoAverageItem(
+              'Média Venda Semanal', widget.stockItem['mvendasemana'] ?? 'N/A'),
+          _buildInfoAverageItem(
+              'Média Venda Mensal', widget.stockItem['mvendames'] ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoItem(String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green, // Cor verde para o título
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoStockItem(String description, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPricesItem(String description, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPackingAndQuantityItem(String description, dynamic value) {
+    String formattedValue = 'N/A';
+    if (value != null && value != 'N/A') {
+      if (description == 'Preço') {
+        formattedValue = double.parse(value.toString()).toStringAsFixed(5);
+      } else {
+        formattedValue = value.toString();
+      }
+    }
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            formattedValue,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoDatesItem(String description, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoAverageItem(String description, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(color: Colors.white),
+          ),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
       ),
     );
   }

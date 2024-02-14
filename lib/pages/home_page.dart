@@ -1,9 +1,10 @@
+// ignore_for_file: library_private_types_in_public_api
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'stock_page.dart';
-import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final String username;
@@ -28,6 +29,7 @@ class _HomePageState extends State<HomePage> {
   String barcode = '';
   List<int> storeIds = [];
   List<Map<String, dynamic>> storeInfo = [];
+  List<Map<String, dynamic>> storeIdAndName = [];
   bool isStockLoaded = false;
 
   @override
@@ -35,7 +37,9 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _apiService = ApiService();
     storeIds = extractStoreIds(widget.permissions);
-    storeInfo = extractStoreInfo(widget.permissions);
+    storeIdAndName = extractStoreIdAndName(widget.permissions);
+
+    print('storeIdAndName no initState $storeIdAndName');
   }
 
   @override
@@ -44,6 +48,7 @@ class _HomePageState extends State<HomePage> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
         child: AppBar(
+          backgroundColor: Colors.green,
           title: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -51,46 +56,41 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   const CircleAvatar(
-                    child: Icon(Icons.arrow_forward),
+                    child: Icon(Icons.person, color: Colors.green),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Bem-vindo,'),
-                      Text(extractUsername(widget.permissions)),
+                      const Text(
+                        'Bem-vindo,',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      Text(
+                        extractUsername(widget.permissions),
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ],
                   ),
                 ],
               ),
-              const Icon(Icons.notifications),
             ],
           ),
-          backgroundColor: Colors.green,
         ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            _buildBarcodeScannerInput(context, widget.token),
-            if (isStockLoaded)
-              _buildStockCarousel(), // Exibir o carrossel apenas se isStockLoaded for true
-            Container(
-              margin: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  const SizedBox(width: 16),
-                  /*  _buildSquareButton(
-                    context,
-                    'Gerenciar Perfis',
-                    () => _openManageProfilesPage(context),
-                    Colors.green,
-                  ), */
-                ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              _buildBarcodeScannerInput(context, widget.token),
+              if (isStockLoaded) _buildStockCarousel(),
+              Container(
+                margin: const EdgeInsets.all(16.0),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -125,21 +125,18 @@ class _HomePageState extends State<HomePage> {
                     border: const OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.green),
                     ),
-                    hintText: 'Escaneie ou digite o código de barras',
+                    hintText: 'Escaneie ou digite',
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.arrow_forward),
                       onPressed: () {
                         if (barcode.length == 13) {
-                          // Chamar a função getStock apenas se o comprimento do código de barras for 13
                           _apiService
                               .getStock(token, barcode, storeIds)
                               .then((dynamic stockData) {
-                            // Verificar se stockData não é nulo e se é uma lista
                             if (stockData != null && stockData is List) {
-                              // Converter os dados de stockData para o tipo esperado
                               List<Map<String, dynamic>> stockList =
                                   stockData.cast<Map<String, dynamic>>();
-                              // Atualizar o estado para indicar que os dados do estoque foram carregados
+
                               setState(() {
                                 isStockLoaded = true;
                                 storeInfo = stockList;
@@ -194,27 +191,20 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _openStockPage(BuildContext context, Map<String, dynamic>? storeData) {
+  void _openStockPage(
+    BuildContext context,
+    Map<String, dynamic>? storeData,
+  ) {
     if (storeData != null) {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => StockPage(stockItem: storeData),
+          builder: (context) =>
+              StockPage(token: widget.token, stockItem: storeData),
         ),
       );
-    } else {
-      print('storeData is null');
     }
   }
-
-  /*  void _openManageProfilesPage(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfilePage(),
-      ),
-    );
-  } */
 
   String extractUsername(List<dynamic> permissions) {
     if (permissions.isNotEmpty) {
@@ -246,7 +236,7 @@ class _HomePageState extends State<HomePage> {
     return [];
   }
 
-  List<Map<String, dynamic>> extractStoreInfo(List<dynamic> permissions) {
+  List<Map<String, dynamic>> extractStoreIdAndName(List<dynamic> permissions) {
     List<Map<String, dynamic>> storeInfo = [];
 
     if (permissions.isNotEmpty) {
@@ -256,55 +246,72 @@ class _HomePageState extends State<HomePage> {
           firstPermission['stores'] is List) {
         final stores = firstPermission['stores'] as List<dynamic>;
 
-        storeInfo = stores.map<Map<String, dynamic>>((store) {
+        storeIdAndName = stores.map<Map<String, dynamic>>((store) {
           return {
             'id': store['id'],
             'storename': store['storename'],
-            'storeData': store,
           };
         }).toList();
       }
     }
 
-    return storeInfo;
+    return storeIdAndName;
   }
 
   Widget _buildStockCarousel() {
+    List<Map<String, dynamic>> filteredStoreInfo = storeInfo.where((item) {
+      String storeId = item['nroempresa'];
+
+      return storeIdAndName.any((store) => store['id'] == int.parse(storeId));
+    }).toList();
+
     return SizedBox(
       height: 200.0,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
-        itemCount: storeInfo.length,
+        itemCount: filteredStoreInfo.length,
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             onTap: () {
-              _openStockPage(context, storeInfo[index]);
+              _openStockPage(context, filteredStoreInfo[index]);
             },
-            child: _buildStoreCard(storeInfo[index]),
+            child: _buildStoreCard(filteredStoreInfo[index], storeIdAndName),
           );
         },
       ),
     );
   }
 
-  Widget _buildStoreCard(Map<String, dynamic> storeData) {
+  Widget _buildStoreCard(Map<String, dynamic> filteredStoreInfo,
+      List<Map<String, dynamic>> storeIdAndName) {
+    final String storeId = filteredStoreInfo['nroempresa'].toString();
+    final Map<String, dynamic>? storeData = storeIdAndName
+        .firstWhereOrNull((store) => store['id'] == int.parse(storeId));
+    final String storeName = storeData != null ? storeData['storename'] : 'N/A';
+
     return Container(
       width: 160.0,
+      height: 200.0,
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'ID: ${storeData['nroempresa']}',
-              style: const TextStyle(fontSize: 16.0),
-            ),
-            Text(
-              'Loja: ${storeData['storename']}',
-              style: const TextStyle(fontSize: 16.0),
-            ),
-          ],
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Text(
+                'LOJA: $storeId',
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 14.0),
+              ),
+              SizedBox(height: 8),
+              Text(
+                storeName,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 16.0),
+              ),
+            ],
+          ),
         ),
       ),
     );

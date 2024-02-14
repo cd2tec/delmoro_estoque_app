@@ -1,11 +1,9 @@
-import 'dart:developer';
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:delmoro_estoque_app/services/auth_service.dart';
 import 'package:delmoro_estoque_app/pages/home_page.dart';
 import 'package:delmoro_estoque_app/services/database_service.dart';
 import 'package:flutter/material.dart';
 import '../widgets/widgets.dart';
-import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
