@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'stock_page.dart'; // Importe a página StockPage
 import 'profile_page.dart'; // Importe a página ProfilePage
 
@@ -70,3 +70,4 @@ class SearchBarcodePage extends StatelessWidget {
     );
   }
 }
+ */

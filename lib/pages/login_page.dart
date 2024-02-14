@@ -1,10 +1,9 @@
-import 'dart:developer';
+import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:delmoro_estoque_app/services/auth_service.dart';
 import 'package:delmoro_estoque_app/pages/home_page.dart';
 import 'package:delmoro_estoque_app/services/database_service.dart';
 import 'package:flutter/material.dart';
 import '../widgets/widgets.dart';
-import 'package:http/http.dart' as http;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,6 +14,7 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   AuthService service = AuthService();
+  ApiService apiService = ApiService();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -74,13 +74,78 @@ class _LoginPageState extends State<LoginPage> {
             .login(_usernameController.text, _passwordController.text, token)
             .then((result) {
           if (result.success) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    HomePage(username: _usernameController.text),
-              ),
-            );
+            final receivedToken = result.token!;
+            apiService.listUsers(receivedToken).then((users) {
+              bool foundUser = false;
+              int userId = -1;
+
+              for (var user in users) {
+                if (user['sequsuario'] == _usernameController.text) {
+                  foundUser = true;
+                  userId = user['id'];
+                  break;
+                }
+              }
+
+              if (foundUser) {
+                apiService
+                    .getPermission(receivedToken, userId)
+                    .then((permissions) {
+                  bool hasPermission = false;
+                  for (var permission in permissions) {
+                    if (permission['grantedaccess'] == "1") {
+                      hasPermission = true;
+                      break;
+                    }
+                  }
+
+                  if (hasPermission) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => HomePage(
+                                username: _usernameController.text,
+                                token: result.token!,
+                                users: users,
+                                permissions: permissions,
+                              )),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Colors.redAccent,
+                        content: Text('Permissão negada'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: Colors.redAccent,
+                      content: Text('Erro ao obter permissão'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.redAccent,
+                    content: Text('Usuário não encontrado'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            }).catchError((error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text('Erro ao listar usuários'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            });
           } else {
             _showSupportMessage(context);
           }
@@ -94,13 +159,80 @@ class _LoginPageState extends State<LoginPage> {
             .login(_usernameController.text, _passwordController.text, token)
             .then((result) {
           if (result.success) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) =>
-                    HomePage(username: _usernameController.text),
-              ),
-            );
+            final receivedToken = result.token!;
+            apiService.listUsers(token).then((users) {
+              bool foundUser = false;
+              int userId = -1;
+
+              for (var user in users) {
+                if (user['sequsuario'] == _usernameController.text) {
+                  foundUser = true;
+                  userId = user['id'];
+                  break;
+                }
+              }
+
+              if (foundUser) {
+                apiService
+                    .getPermission(receivedToken, userId)
+                    .then((permissions) {
+                  bool hasPermission = false;
+                  for (var permission in permissions) {
+                    if (permission['grantedaccess'] == "1") {
+                      hasPermission = true;
+                      break;
+                    }
+                  }
+
+                  if (hasPermission) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => HomePage(
+                                username: _usernameController.text,
+                                token: result.token!,
+                                users: users,
+                                permissions: permissions,
+                              )),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        backgroundColor: Colors.redAccent,
+                        content: Text('Permissão negada'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                }).catchError((error) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      backgroundColor: Colors.redAccent,
+                      content: Text('Erro ao obter permissão'),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                });
+              } else {
+                // Exibir mensagem de erro se o usuário não for encontrado
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    backgroundColor: Colors.redAccent,
+                    content: Text('Usuário não encontrado'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            }).catchError((error) {
+              // Tratar erros ao listar usuários
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: Colors.redAccent,
+                  content: Text('Erro ao listar usuários'),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            });
           } else {
             _showSupportMessage(context);
           }

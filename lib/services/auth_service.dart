@@ -20,16 +20,29 @@ class AuthService {
       String username, String password, String token) async {
     var apiUrl = Uri.parse('http://144.22.160.136:8081/login/mobile');
 
+    print('token aqui $token');
+
+    // remover isso depois
+    var newToken = '123456';
     var response = await http.post(apiUrl, body: {
       'sequsuario': username,
       'password': password,
-      'mobiletoken': token,
+      'mobiletoken': newToken,
     });
 
     if (response.statusCode == 200) {
-      String? token = "";
-      await _saveTokenInSharedPreferences(token);
-      return LoginResult(success: true, token: token);
+      // Decodifica o corpo da resposta JSON
+      Map<String, dynamic> responseBody = json.decode(response.body);
+
+      // Extrai o valor do access_token do corpo da resposta
+      String? receivedToken = responseBody['access_token'];
+
+      // Salva o token nas SharedPreferences
+      await _saveTokenInSharedPreferences(receivedToken);
+
+      print('token aqui rapaz $receivedToken');
+
+      return LoginResult(success: true, token: receivedToken);
     } else {
       return LoginResult(success: false);
     }
