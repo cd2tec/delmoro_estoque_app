@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import '../widgets/widgets.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  const LoginPage({Key? key}) : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -75,73 +75,52 @@ class _LoginPageState extends State<LoginPage> {
             .then((result) {
           if (result.success) {
             final receivedToken = result.token!;
-            apiService.listUsers(receivedToken).then((users) {
-              bool foundUser = false;
-              int userId = -1;
+            apiService.getMe(receivedToken).then((userData) {
+              final int userId = userData['id'];
+              final String showCost = userData['showcost'];
+              bool hasPermission = false;
 
-              for (var user in users) {
-                if (user['sequsuario'] == _usernameController.text) {
-                  foundUser = true;
-                  userId = user['id'];
-                  break;
-                }
+              if (userData['grantedaccess'] == "1") {
+                hasPermission = true;
               }
 
-              if (foundUser) {
-                apiService
-                    .getPermission(receivedToken, userId)
-                    .then((permissions) {
-                  bool hasPermission = false;
-                  for (var permission in permissions) {
-                    if (permission['grantedaccess'] == "1") {
-                      hasPermission = true;
-                      break;
-                    }
-                  }
-
-                  if (hasPermission) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HomePage(
-                                username: _usernameController.text,
-                                token: result.token!,
-                                users: users,
-                                permissions: permissions,
-                              )),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Colors.redAccent,
-                        content: Text('Permissão negada'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                }).catchError((error) {
+              apiService
+                  .getPermission(receivedToken, userId)
+                  .then((permissions) {
+                if (hasPermission) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomePage(
+                              username: _usernameController.text,
+                              token: result.token!,
+                              showCost: showCost,
+                              permissions: permissions,
+                            )),
+                  );
+                } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       backgroundColor: Colors.redAccent,
-                      content: Text('Erro ao obter permissão'),
+                      content: Text('Permissão negada'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
-                });
-              } else {
+                }
+              }).catchError((error) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: Colors.redAccent,
-                    content: Text('Usuário não encontrado'),
+                    content: Text('Erro ao obter permissão'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
-              }
+              });
             }).catchError((error) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   backgroundColor: Colors.redAccent,
-                  content: Text('Erro ao listar usuários'),
+                  content: Text('Erro ao obter dados do usuário'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -160,75 +139,55 @@ class _LoginPageState extends State<LoginPage> {
             .then((result) {
           if (result.success) {
             final receivedToken = result.token!;
-            apiService.listUsers(token).then((users) {
-              bool foundUser = false;
-              int userId = -1;
+            apiService.getMe(receivedToken).then((userData) {
+              print('getme aqui $userData');
 
-              for (var user in users) {
-                if (user['sequsuario'] == _usernameController.text) {
-                  foundUser = true;
-                  userId = user['id'];
-                  break;
-                }
+              final int userId = userData['id'];
+              final String showCost = userData['showcost'];
+              bool hasPermission = false;
+
+              if (userData['grantedaccess'] == "1") {
+                hasPermission = true;
               }
 
-              if (foundUser) {
-                apiService
-                    .getPermission(receivedToken, userId)
-                    .then((permissions) {
-                  bool hasPermission = false;
-                  for (var permission in permissions) {
-                    if (permission['grantedaccess'] == "1") {
-                      hasPermission = true;
-                      break;
-                    }
-                  }
-
-                  if (hasPermission) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => HomePage(
-                                username: _usernameController.text,
-                                token: result.token!,
-                                users: users,
-                                permissions: permissions,
-                              )),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        backgroundColor: Colors.redAccent,
-                        content: Text('Permissão negada'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
-                  }
-                }).catchError((error) {
+              apiService
+                  .getPermission(receivedToken, userId)
+                  .then((permissions) {
+                print('hasPermission $permissions');
+                if (hasPermission) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => HomePage(
+                              username: _usernameController.text,
+                              token: result.token!,
+                              showCost: showCost,
+                              permissions: permissions,
+                            )),
+                  );
+                } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       backgroundColor: Colors.redAccent,
-                      content: Text('Erro ao obter permissão'),
+                      content: Text('Permissão negada'),
                       behavior: SnackBarBehavior.floating,
                     ),
                   );
-                });
-              } else {
-                // Exibir mensagem de erro se o usuário não for encontrado
+                }
+              }).catchError((error) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     backgroundColor: Colors.redAccent,
-                    content: Text('Usuário não encontrado'),
+                    content: Text('Erro ao obter permissão'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 );
-              }
+              });
             }).catchError((error) {
-              // Tratar erros ao listar usuários
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   backgroundColor: Colors.redAccent,
-                  content: Text('Erro ao listar usuários'),
+                  content: Text('Erro ao obter permissão'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );

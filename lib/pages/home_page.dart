@@ -9,14 +9,14 @@ import 'stock_page.dart';
 class HomePage extends StatefulWidget {
   final String username;
   final String token;
-  final List<dynamic> users;
+  final String showCost;
   final List<dynamic> permissions;
 
   const HomePage({
     Key? key,
     required this.username,
     required this.token,
-    required this.users,
+    required this.showCost,
     required this.permissions,
   }) : super(key: key);
 
@@ -27,6 +27,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late ApiService _apiService;
   String barcode = '';
+  TextEditingController _barcodeController = TextEditingController();
   List<int> storeIds = [];
   List<Map<String, dynamic>> storeInfo = [];
   List<Map<String, dynamic>> storeIdAndName = [];
@@ -69,7 +70,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Text(
                         extractUsername(widget.permissions),
-                        style: TextStyle(color: Colors.white),
+                        style: const TextStyle(color: Colors.white),
                       ),
                     ],
                   ),
@@ -111,11 +112,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               Expanded(
                 child: TextFormField(
-                  onChanged: (value) {
-                    setState(() {
-                      barcode = value;
-                    });
-                  },
+                  controller: _barcodeController,
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
@@ -128,10 +125,11 @@ class _HomePageState extends State<HomePage> {
                     hintText: 'Escaneie ou digite',
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.arrow_forward),
-                      onPressed: () {
-                        if (barcode.length == 13) {
+                      onPressed: () async {
+                        if (_barcodeController.text.length == 13) {
+                          String result = _barcodeController.text;
                           _apiService
-                              .getStock(token, barcode, storeIds)
+                              .getStock(token, result, storeIds)
                               .then((dynamic stockData) {
                             if (stockData != null && stockData is List) {
                               List<Map<String, dynamic>> stockList =
@@ -164,6 +162,20 @@ class _HomePageState extends State<HomePage> {
                   if (result != '-1') {
                     setState(() {
                       barcode = result;
+                      _barcodeController.text = barcode;
+                    });
+                    _apiService
+                        .getStock(token, result, storeIds)
+                        .then((dynamic stockData) {
+                      if (stockData != null && stockData is List) {
+                        List<Map<String, dynamic>> stockList =
+                            stockData.cast<Map<String, dynamic>>();
+
+                        setState(() {
+                          isStockLoaded = true;
+                          storeInfo = stockList;
+                        });
+                      }
                     });
                   }
                 },
@@ -173,37 +185,6 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
-  }
-
-  Widget _buildSquareButton(
-      BuildContext context, String text, Function() onPressed, Color color) {
-    return SizedBox(
-      width: 150,
-      height: 150,
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          foregroundColor: Colors.white,
-          backgroundColor: color,
-        ),
-        child: Text(text, textAlign: TextAlign.center),
-      ),
-    );
-  }
-
-  void _openStockPage(
-    BuildContext context,
-    Map<String, dynamic>? storeData,
-  ) {
-    if (storeData != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) =>
-              StockPage(token: widget.token, stockItem: storeData),
-        ),
-      );
-    }
   }
 
   String extractUsername(List<dynamic> permissions) {
@@ -315,5 +296,22 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _openStockPage(
+    BuildContext context,
+    Map<String, dynamic>? storeData,
+  ) {
+    if (storeData != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StockPage(
+              token: widget.token,
+              showCost: widget.showCost,
+              stockItem: storeData),
+        ),
+      );
+    }
   }
 }

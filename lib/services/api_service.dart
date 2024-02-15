@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class ApiService {
   final Uri apiUrl = Uri.parse('http://144.22.160.136:8081');
 
-  Future<List<dynamic>> getMe(String token) async {
+  Future<Map<String, dynamic>> getMe(String token) async {
     var getMeUrl = apiUrl.resolve('/me');
 
     var response = await http.get(getMeUrl, headers: {
@@ -16,14 +16,9 @@ class ApiService {
     if (response.statusCode == 200) {
       var responseData = json.decode(response.body);
 
-      var usersData = responseData['data'];
+      print('getMe $responseData');
 
-      if (usersData is List) {
-        print('response get me $usersData');
-        return usersData;
-      } else {
-        throw Exception('Response data is not a list');
-      }
+      return responseData;
     } else {
       throw Exception('Failed to load user data');
     }
