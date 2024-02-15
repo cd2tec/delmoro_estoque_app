@@ -5,8 +5,13 @@ import 'package:flutter/material.dart';
 class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
   final String token;
+  final String showCost;
 
-  const StockPage({Key? key, required this.token, required this.stockItem})
+  const StockPage(
+      {Key? key,
+      required this.token,
+      required this.showCost,
+      required this.stockItem})
       : super(key: key);
 
   @override
@@ -51,13 +56,10 @@ class _StockPageState extends State<StockPage> {
       setState(() {
         promoPrice = storeInfo;
       });
-
-      print(promoPrice);
     } catch (e) {
       setState(() {
         promoPrice = [];
       });
-      print('Erro ao obter dados de preço: $e');
     }
   }
 
@@ -89,6 +91,7 @@ class _StockPageState extends State<StockPage> {
             const SizedBox(height: 14.0),
             _buildInfoDescription(
                 'Descrição', widget.stockItem['descricao'] ?? 'N/A'),
+            _buildInfoSupplier('Fornecedor', widget.stockItem),
             _buildInfoStock('Estoque', widget.stockItem),
             _buildInfoPackingAndQuantity(
                 'Embalagens e Quantidades', widget.stockItem),
@@ -127,6 +130,33 @@ class _StockPageState extends State<StockPage> {
     );
   }
 
+  Widget _buildInfoSupplier(String title, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 3.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4.0),
+          _buildSupplierItem(
+              'Fornecedor', widget.stockItem['fornecedor'] ?? 'N/A'),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoStock(String title, Map<String, dynamic> stockItem) {
     return Container(
       width: double.infinity,
@@ -151,12 +181,16 @@ class _StockPageState extends State<StockPage> {
               'Estoque Loja', widget.stockItem['estoqueloja'] ?? 'N/A'),
           _buildInfoStockItem(
               'Estoque CD', widget.stockItem['estoquedeposito'] ?? 'N/A'),
+          _buildInfoStockItem(
+              'Estoque Troca', widget.stockItem['estoquetroca'] ?? 'N/A'),
         ],
       ),
     );
   }
 
   Widget _buildInfoPrices(String title, Map<String, dynamic> stockItem) {
+    final bool showCost = widget.showCost == "1";
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 3.0),
@@ -180,6 +214,11 @@ class _StockPageState extends State<StockPage> {
               'Preço Venda Normal', stockItem['precovendanormal'] ?? 'N/A'),
           _buildInfoPricesItem('Preço Venda Promocional',
               stockItem['precopromocional'] ?? 'N/A'),
+          if (showCost)
+            _buildInfoPricesItem(
+              'Custo Última Entrada',
+              stockItem['custoultentrada'] ?? 'N/A',
+            ),
         ],
       ),
     );
@@ -300,6 +339,28 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoItem(String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green, // Cor verde para o título
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSupplierItem(String description, String value) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
