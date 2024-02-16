@@ -15,6 +15,10 @@ class AuthService {
     return token;
   }
 
+  static Future<SharedPreferences> getSharedPreferences() async {
+    return await SharedPreferences.getInstance();
+  }
+
   Future<LoginResult> login(
       String username, String password, String token) async {
     var apiUrl = Uri.parse('http://144.22.160.136:8081/login/mobile');
@@ -35,6 +39,23 @@ class AuthService {
       return LoginResult(success: true, token: receivedToken);
     } else {
       return LoginResult(success: false);
+    }
+  }
+
+  Future<void> revokeToken() async {
+    SharedPreferences prefs = await getSharedPreferences();
+    var apiUrl = Uri.parse('http://144.22.160.136:8081/revoke');
+    var token = prefs.getString('token');
+
+    http.Response response = await http.post(apiUrl,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json'
+        },
+        body: null);
+
+    if (response.statusCode != 200) {
+      throw http.ClientException(response.body);
     }
   }
 

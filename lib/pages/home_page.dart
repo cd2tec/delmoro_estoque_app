@@ -1,7 +1,10 @@
-// ignore_for_file: library_private_types_in_public_api
+import 'package:delmoro_estoque_app/pages/login_page.dart';
+import 'package:delmoro_estoque_app/widgets/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
 import 'package:delmoro_estoque_app/services/api_service.dart';
+import 'package:delmoro_estoque_app/services/auth_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'stock_page.dart';
@@ -26,12 +29,14 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late ApiService _apiService;
+  AuthService service = AuthService();
   String barcode = '';
-  TextEditingController _barcodeController = TextEditingController();
+  final TextEditingController _barcodeController = TextEditingController();
   List<int> storeIds = [];
   List<Map<String, dynamic>> storeInfo = [];
   List<Map<String, dynamic>> storeIdAndName = [];
   bool isStockLoaded = false;
+  bool isStockLoading = false;
 
   @override
   void initState() {
@@ -39,8 +44,6 @@ class _HomePageState extends State<HomePage> {
     _apiService = ApiService();
     storeIds = extractStoreIds(widget.permissions);
     storeIdAndName = extractStoreIdAndName(widget.permissions);
-
-    print('storeIdAndName no initState $storeIdAndName');
   }
 
   @override
@@ -57,7 +60,7 @@ class _HomePageState extends State<HomePage> {
               Row(
                 children: [
                   const CircleAvatar(
-                    child: Icon(Icons.person, color: Colors.green),
+                    child: LogoUserWidget(),
                   ),
                   const SizedBox(width: 10),
                   const SizedBox(width: 10),
@@ -78,6 +81,21 @@ class _HomePageState extends State<HomePage> {
               ),
             ],
           ),
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+      ),
+      endDrawer: Drawer(
+        backgroundColor: Colors.white,
+        child: ListView(
+          children: [
+            ListTile(
+              onTap: () {
+                _logout(context);
+              },
+              title: const Text("Sair do app"),
+              leading: const Icon(Icons.logout),
+            )
+          ],
         ),
       ),
       body: SingleChildScrollView(
@@ -86,7 +104,9 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             children: [
               _buildBarcodeScannerInput(context, widget.token),
+              const SizedBox(height: 50),
               if (isStockLoaded) _buildStockCarousel(),
+              if (isStockLoading) const CircularProgressIndicator(),
               Container(
                 margin: const EdgeInsets.all(16.0),
               ),
@@ -127,20 +147,7 @@ class _HomePageState extends State<HomePage> {
                       icon: const Icon(Icons.arrow_forward),
                       onPressed: () async {
                         if (_barcodeController.text.length == 13) {
-                          String result = _barcodeController.text;
-                          _apiService
-                              .getStock(token, result, storeIds)
-                              .then((dynamic stockData) {
-                            if (stockData != null && stockData is List) {
-                              List<Map<String, dynamic>> stockList =
-                                  stockData.cast<Map<String, dynamic>>();
-
-                              setState(() {
-                                isStockLoaded = true;
-                                storeInfo = stockList;
-                              });
-                            }
-                          });
+                          _searchBarcode(context, token);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
@@ -157,27 +164,7 @@ class _HomePageState extends State<HomePage> {
               IconButton(
                 icon: const Icon(Icons.camera_alt),
                 onPressed: () async {
-                  String? result = await FlutterBarcodeScanner.scanBarcode(
-                      '#ff6666', 'Cancelar', true, ScanMode.BARCODE);
-                  if (result != '-1') {
-                    setState(() {
-                      barcode = result;
-                      _barcodeController.text = barcode;
-                    });
-                    _apiService
-                        .getStock(token, result, storeIds)
-                        .then((dynamic stockData) {
-                      if (stockData != null && stockData is List) {
-                        List<Map<String, dynamic>> stockList =
-                            stockData.cast<Map<String, dynamic>>();
-
-                        setState(() {
-                          isStockLoaded = true;
-                          storeInfo = stockList;
-                        });
-                      }
-                    });
-                  }
+                  _scanBarcode(context, token);
                 },
               ),
             ],
@@ -187,56 +174,86 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  String extractUsername(List<dynamic> permissions) {
-    if (permissions.isNotEmpty) {
-      final firstPermission = permissions[0];
+  void _searchBarcode(BuildContext context, String token) {
+    setState(() {
+      isStockLoaded = false;
+      isStockLoading = true;
+    });
 
-      if (firstPermission.containsKey('name') &&
-          firstPermission['name'] is String) {
-        final username = firstPermission['name'];
+    String result = _barcodeController.text;
+    _apiService.getStock(token, result, storeIds).then((dynamic stockData) {
+      if (stockData != null && stockData is List && stockData.isNotEmpty) {
+        List<Map<String, dynamic>> stockList =
+            stockData.cast<Map<String, dynamic>>();
 
-        return username;
+        setState(() {
+          isStockLoaded = true;
+          isStockLoading = false;
+          storeInfo = stockList;
+        });
+      } else {
+        setState(() {
+          isStockLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Produto não encontrado. Escaneie ou digite um outro código de barras.'),
+          ),
+        );
       }
-    }
-
-    return 'Usuário';
+    }).catchError((error) {
+      setState(() {
+        isStockLoading = false;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Erro ao buscar o produto'),
+        ),
+      );
+    });
   }
 
-  List<int> extractStoreIds(List<dynamic> permissions) {
-    if (permissions.isNotEmpty) {
-      final firstPermission = permissions[0];
+  void _scanBarcode(BuildContext context, String token) async {
+    String? result = await FlutterBarcodeScanner.scanBarcode(
+        '#ff6666', 'Cancelar', true, ScanMode.BARCODE);
+    if (result != '-1') {
+      setState(() {
+        barcode = result;
+        _barcodeController.text = barcode;
+        isStockLoading = true;
+      });
+      _apiService.getStock(token, result, storeIds).then((dynamic stockData) {
+        if (stockData != null && stockData is List && stockData.isNotEmpty) {
+          List<Map<String, dynamic>> stockList =
+              stockData.cast<Map<String, dynamic>>();
 
-      if (firstPermission.containsKey('stores') &&
-          firstPermission['stores'] is List) {
-        final stores = firstPermission['stores'] as List<dynamic>;
-
-        return stores.map<int>((store) => store['id'] as int).toList();
-      }
+          setState(() {
+            isStockLoaded = true;
+            isStockLoading = false;
+            storeInfo = stockList;
+          });
+        } else {
+          setState(() {
+            isStockLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Produto não encontrado'),
+            ),
+          );
+        }
+      }).catchError((error) {
+        setState(() {
+          isStockLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Erro ao buscar o produto'),
+          ),
+        );
+      });
     }
-
-    return [];
-  }
-
-  List<Map<String, dynamic>> extractStoreIdAndName(List<dynamic> permissions) {
-    List<Map<String, dynamic>> storeInfo = [];
-
-    if (permissions.isNotEmpty) {
-      final firstPermission = permissions[0];
-
-      if (firstPermission.containsKey('stores') &&
-          firstPermission['stores'] is List) {
-        final stores = firstPermission['stores'] as List<dynamic>;
-
-        storeIdAndName = stores.map<Map<String, dynamic>>((store) {
-          return {
-            'id': store['id'],
-            'storename': store['storename'],
-          };
-        }).toList();
-      }
-    }
-
-    return storeIdAndName;
   }
 
   Widget _buildStockCarousel() {
@@ -313,5 +330,84 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     }
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    service.revokeToken().then((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs;
+    }).then((prefs) {
+      final savedUsername = prefs.getString('username');
+      final savedPassword = prefs.getString('password');
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+            builder: (context) => LoginPage(
+                savedUsername: savedUsername, savedPassword: savedPassword)),
+        (Route<dynamic> route) => false,
+      );
+    }).catchError((error) {
+      final snackBar = SnackBar(
+        content: Text(
+          'Ocorreu um erro durante o logout: $error',
+          style: TextStyle(fontSize: 16),
+        ),
+        backgroundColor: Colors.red,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    });
+  }
+
+  String extractUsername(List<dynamic> permissions) {
+    if (permissions.isNotEmpty) {
+      final firstPermission = permissions[0];
+
+      if (firstPermission.containsKey('name') &&
+          firstPermission['name'] is String) {
+        final username = firstPermission['name'];
+
+        return username;
+      }
+    }
+
+    return 'Usuário';
+  }
+
+  List<int> extractStoreIds(List<dynamic> permissions) {
+    if (permissions.isNotEmpty) {
+      final firstPermission = permissions[0];
+
+      if (firstPermission.containsKey('stores') &&
+          firstPermission['stores'] is List) {
+        final stores = firstPermission['stores'] as List<dynamic>;
+
+        return stores.map<int>((store) => store['id'] as int).toList();
+      }
+    }
+
+    return [];
+  }
+
+  List<Map<String, dynamic>> extractStoreIdAndName(List<dynamic> permissions) {
+    List<Map<String, dynamic>> storeInfo = [];
+
+    if (permissions.isNotEmpty) {
+      final firstPermission = permissions[0];
+
+      if (firstPermission.containsKey('stores') &&
+          firstPermission['stores'] is List) {
+        final stores = firstPermission['stores'] as List<dynamic>;
+
+        storeIdAndName = stores.map<Map<String, dynamic>>((store) {
+          return {
+            'id': store['id'],
+            'storename': store['storename'],
+          };
+        }).toList();
+      }
+    }
+
+    return storeIdAndName;
   }
 }

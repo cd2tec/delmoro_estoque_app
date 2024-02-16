@@ -23,7 +23,6 @@ class DatabaseService {
     List<Map<String, dynamic>> tokens = await database.query('tokens');
 
     if (tokens.isNotEmpty) {
-      print('getToken database $tokens');
       return tokens.first['token'] as String?;
     } else {
       return null;
@@ -31,12 +30,10 @@ class DatabaseService {
   }
 
   static Future<void> deleteToken() async {
-    // Abra a conexão com o banco de dados
     final Database database = await openDatabase(
       join(await getDatabasesPath(), 'database.db'),
     );
 
-    // Delete o token da tabela 'tokens'
     await database.delete('tokens');
   }
 
