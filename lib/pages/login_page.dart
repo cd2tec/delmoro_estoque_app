@@ -1,12 +1,18 @@
+// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
+import 'package:flutter/material.dart';
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:delmoro_estoque_app/services/auth_service.dart';
 import 'package:delmoro_estoque_app/pages/home_page.dart';
 import 'package:delmoro_estoque_app/services/database_service.dart';
-import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../widgets/widgets.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  final String? savedUsername;
+  final String? savedPassword;
+
+  const LoginPage({Key? key, this.savedUsername, this.savedPassword})
+      : super(key: key);
 
   @override
   _LoginPageState createState() => _LoginPageState();
@@ -21,6 +27,22 @@ class _LoginPageState extends State<LoginPage> {
   bool _isButtonEnabled = false;
 
   @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
+
+  Future<void> _loadSavedCredentials() async {
+    if (widget.savedUsername != null && widget.savedPassword != null) {
+      setState(() {
+        _usernameController.text = widget.savedUsername!;
+        _passwordController.text = widget.savedPassword!;
+        _isButtonEnabled = true;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
@@ -29,7 +51,10 @@ class _LoginPageState extends State<LoginPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const LogoWidget(),
+            SizedBox(
+              height: MediaQuery.of(context).size.height * 0.3,
+              child: const LogoWidget(),
+            ),
             const SizedBox(height: 16),
             UsernameInputWidget(
               controller: _usernameController,
@@ -67,145 +92,111 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  void _authenticate(BuildContext context) {
-    DatabaseService.getToken().then((token) {
+  Future<void> _authenticate(BuildContext context) async {
+    String username = _usernameController.text;
+    String password = _passwordController.text;
+    try {
+      final token = await DatabaseService.getToken();
       if (token != null) {
-        service
-            .login(_usernameController.text, _passwordController.text, token)
-            .then((result) {
-          if (result.success) {
-            final receivedToken = result.token!;
-            apiService.getMe(receivedToken).then((userData) {
-              final int userId = userData['id'];
-              final String showCost = userData['showcost'];
-              bool hasPermission = false;
+        final result = await service.login(
+            _usernameController.text, _passwordController.text, token);
+        if (result.success) {
+          final receivedToken = result.token!;
+          final userData = await apiService.getMe(receivedToken);
+          final int userId = userData['id'];
+          final String showCost = userData['showcost'];
+          bool hasPermission = false;
 
-              if (userData['grantedaccess'] == "1") {
-                hasPermission = true;
-              }
-
-              apiService
-                  .getPermission(receivedToken, userId)
-                  .then((permissions) {
-                if (hasPermission) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomePage(
-                              username: _usernameController.text,
-                              token: result.token!,
-                              showCost: showCost,
-                              permissions: permissions,
-                            )),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: Colors.redAccent,
-                      content: Text('Permissão negada'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              }).catchError((error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: Colors.redAccent,
-                    content: Text('Erro ao obter permissão'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              });
-            }).catchError((error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: Colors.redAccent,
-                  content: Text('Erro ao obter dados do usuário'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            });
-          } else {
-            _showSupportMessage(context);
+          if (userData['grantedaccess'] == "1") {
+            hasPermission = true;
           }
-        });
+
+          final permissions =
+              await apiService.getPermission(receivedToken, userId);
+
+          if (hasPermission) {
+            SharedPreferences prefs = await SharedPreferences.getInstance();
+            await prefs.setString('username', username);
+            await prefs.setString('password', password);
+
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(
+                  username: _usernameController.text,
+                  token: receivedToken,
+                  showCost: showCost,
+                  permissions: permissions,
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.redAccent,
+                content: Text('Permissão negada'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } else {
+          _showSupportMessage(context);
+        }
       } else {
-        var token = service.generateToken(
+        final token = service.generateToken(
             _usernameController.text, _passwordController.text);
 
-        DatabaseService.saveToken(token);
-        service
-            .login(_usernameController.text, _passwordController.text, token)
-            .then((result) {
-          if (result.success) {
-            final receivedToken = result.token!;
-            apiService.getMe(receivedToken).then((userData) {
-              print('getme aqui $userData');
+        await DatabaseService.saveToken(token);
+        final result = await service.login(
+            _usernameController.text, _passwordController.text, token);
+        if (result.success) {
+          final receivedToken = result.token!;
+          final userData = await apiService.getMe(receivedToken);
+          final int userId = userData['id'];
+          final String showCost = userData['showcost'];
+          bool hasPermission = false;
 
-              final int userId = userData['id'];
-              final String showCost = userData['showcost'];
-              bool hasPermission = false;
-
-              if (userData['grantedaccess'] == "1") {
-                hasPermission = true;
-              }
-
-              apiService
-                  .getPermission(receivedToken, userId)
-                  .then((permissions) {
-                print('hasPermission $permissions');
-                if (hasPermission) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => HomePage(
-                              username: _usernameController.text,
-                              token: result.token!,
-                              showCost: showCost,
-                              permissions: permissions,
-                            )),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      backgroundColor: Colors.redAccent,
-                      content: Text('Permissão negada'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              }).catchError((error) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    backgroundColor: Colors.redAccent,
-                    content: Text('Erro ao obter permissão'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                );
-              });
-            }).catchError((error) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  backgroundColor: Colors.redAccent,
-                  content: Text('Erro ao obter permissão'),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            });
-          } else {
-            _showSupportMessage(context);
+          if (userData['grantedaccess'] == "1") {
+            hasPermission = true;
           }
-        });
+
+          final permissions =
+              await apiService.getPermission(receivedToken, userId);
+
+          if (hasPermission) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(
+                  username: _usernameController.text,
+                  token: receivedToken,
+                  showCost: showCost,
+                  permissions: permissions,
+                ),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                backgroundColor: Colors.redAccent,
+                content: Text('Permissão negada'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        } else {
+          _showSupportMessage(context);
+        }
       }
-    }).catchError((error) {
+    } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
-          content: Text('Erro ao buscar token do banco de dados'),
+          content: Text('Erro durante a autenticação'),
           behavior: SnackBarBehavior.floating,
         ),
       );
-    });
+    }
   }
 
   void _showSupportMessage(BuildContext context) {

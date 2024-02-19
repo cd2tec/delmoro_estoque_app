@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -16,8 +18,6 @@ class ApiService {
     if (response.statusCode == 200) {
       var responseData = json.decode(response.body);
 
-      print('getMe $responseData');
-
       return responseData;
     } else {
       throw Exception('Failed to load user data');
@@ -26,8 +26,6 @@ class ApiService {
 
   Future<List<dynamic>> listUsers(String token) async {
     var listUsersUrl = apiUrl.resolve('/user');
-
-    print('list users token $token');
 
     var response = await http.get(listUsersUrl, headers: {
       'Authorization': 'Bearer $token',
@@ -40,7 +38,6 @@ class ApiService {
       var usersData = responseData['data'];
 
       if (usersData is List) {
-        print('response listuser $usersData');
         return usersData;
       } else {
         throw Exception('Response data is not a list');
@@ -79,14 +76,13 @@ class ApiService {
 
       if (response.statusCode == 200) {
         var decodedResponse = json.decode(response.body) as List<dynamic>;
-        print("response getPermission $decodedResponse");
+
         return decodedResponse;
       } else {
         throw Exception(
             'Failed to load user permission. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching user permission: $e');
       throw Exception('Failed to load user permission: $e');
     }
   }
@@ -115,7 +111,6 @@ class ApiService {
             'Failed to load stock data. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching stock data: $e');
       throw Exception('Failed to load stock data: $e');
     }
   }
@@ -158,7 +153,6 @@ class ApiService {
             'Failed to load price data. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching price data: $e');
       throw Exception('Failed to load stock data: $e');
     }
   }
