@@ -76,7 +76,7 @@ class _StockPageState extends State<StockPage> {
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          color: Colors.white, // Cor branca para o ícone de voltar
+          color: Colors.white,
           onPressed: () {
             Navigator.of(context).pop();
           },

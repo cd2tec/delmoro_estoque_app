@@ -136,7 +136,6 @@ class _HomePageState extends State<HomePage> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
-                    LengthLimitingTextInputFormatter(13),
                   ],
                   decoration: InputDecoration(
                     border: const OutlineInputBorder(
@@ -146,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.arrow_forward),
                       onPressed: () async {
-                        if (_barcodeController.text.length == 13) {
+                        if (_barcodeController.text.isNotEmpty) {
                           _searchBarcode(context, token);
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(

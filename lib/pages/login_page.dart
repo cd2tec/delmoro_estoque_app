@@ -25,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _isButtonEnabled = false;
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -68,11 +69,12 @@ class _LoginPageState extends State<LoginPage> {
               onToggle: _togglePasswordVisibility,
             ),
             const SizedBox(height: 24),
-            LoginButtonWidget(
-              onPressed:
-                  _isButtonEnabled ? () => _authenticate(context) : () {},
-              isEnabled: _isButtonEnabled,
-            ),
+            _isLoading
+                ? const CircularProgressIndicator()
+                : LoginButtonWidget(
+                    onPressed: _isButtonEnabled ? () => _authenticate() : () {},
+                    isEnabled: _isButtonEnabled,
+                  ),
           ],
         ),
       ),
@@ -92,11 +94,16 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  Future<void> _authenticate(BuildContext context) async {
+  Future<void> _authenticate() async {
+    setState(() {
+      _isLoading = true;
+    });
+
     String username = _usernameController.text;
     String password = _passwordController.text;
     try {
       final token = await DatabaseService.getToken();
+
       if (token != null) {
         final result = await service.login(
             _usernameController.text, _passwordController.text, token);
@@ -108,6 +115,7 @@ class _LoginPageState extends State<LoginPage> {
           bool hasPermission = false;
 
           if (userData['grantedaccess'] == "1") {
+            print('toaqui $userData');
             hasPermission = true;
           }
 
@@ -134,7 +142,8 @@ class _LoginPageState extends State<LoginPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 backgroundColor: Colors.redAccent,
-                content: Text('Permissão negada'),
+                content: Text(
+                    'Permissão negada. Entre em contato com o administrador'),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -179,7 +188,8 @@ class _LoginPageState extends State<LoginPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 backgroundColor: Colors.redAccent,
-                content: Text('Permissão negada'),
+                content: Text(
+                    'Permissão negada. Entre em contato com o administrador'),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -196,6 +206,10 @@ class _LoginPageState extends State<LoginPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -205,7 +219,7 @@ class _LoginPageState extends State<LoginPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Erro de login'),
-          content: Text('Por favor, entre em contato com o suporte.'),
+          content: Text('Verifique suas credenciais.'),
           actions: [
             TextButton(
               onPressed: () {
