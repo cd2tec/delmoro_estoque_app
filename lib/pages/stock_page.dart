@@ -249,23 +249,46 @@ class _StockPageState extends State<StockPage> {
                 .map<Widget>((price) => Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildInfoPackingAndQuantityItem(
-                            'Embalagem', price['embalagem'] ?? 'N/A'),
-                        _buildInfoPackingAndQuantityItem('Quantidade',
-                            price['qtdembalagem'].toString() ?? 'N/A'),
-                        _buildInfoPackingAndQuantityItem(
-                            'Preço', price['precobase'].toString() ?? 'N/A'),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildInfoPackingAndQuantityItem(
+                                'Embalagem',
+                                price['embalagem'] ?? 'N/A',
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildInfoPackingAndQuantityItem(
+                                'Quantidade',
+                                price['qtdembalagem'].toString() ?? 'N/A',
+                              ),
+                            ),
+                            Expanded(
+                              child: _buildInfoPackingAndQuantityItem(
+                                'Preço',
+                                price['precobase'].toString() ?? 'N/A',
+                              ),
+                            ),
+                          ],
+                        ),
                       ],
                     ))
                 .toList(),
           if (promoPrice == null)
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                _buildInfoPackingAndQuantityItem(
-                    'Embalagem', stockItem['embalagem'] ?? 'N/A'),
-                _buildInfoPackingAndQuantityItem(
-                    'Quantidade', stockItem['quantidadeembalagem'] ?? 'N/A'),
+                Expanded(
+                  child: _buildInfoPackingAndQuantityItem(
+                    'Embalagem',
+                    stockItem['embalagem'] ?? 'N/A',
+                  ),
+                ),
+                Expanded(
+                  child: _buildInfoPackingAndQuantityItem(
+                    'Quantidade',
+                    stockItem['quantidadeembalagem'] ?? 'N/A',
+                  ),
+                ),
               ],
             ),
         ],
