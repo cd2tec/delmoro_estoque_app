@@ -171,10 +171,18 @@ class _StockPageState extends State<StockPage> {
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
-          _buildInfoStockItem(
-              'Estoque Loja', widget.stockItem['estoqueloja'] ?? 'N/A'),
-          _buildInfoStockItem(
-              'Estoque CD', widget.stockItem['estoquedeposito'] ?? 'N/A'),
+          Row(
+            children: [
+              Expanded(
+                child: _buildInfoStockItem(
+                    'Estoque Loja', stockItem['estoqueloja'] ?? 'N/A'),
+              ),
+              Expanded(
+                child: _buildInfoStockItem(
+                    'Estoque CD', stockItem['estoquedeposito'] ?? 'N/A'),
+              ),
+            ],
+          ),
           if (stockItem.containsKey('estoquetroca'))
             _buildInfoStockItem(
                 'Estoque Troca', stockItem['estoquetroca'] ?? 'N/A'),
