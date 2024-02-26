@@ -175,8 +175,9 @@ class _StockPageState extends State<StockPage> {
               'Estoque Loja', widget.stockItem['estoqueloja'] ?? 'N/A'),
           _buildInfoStockItem(
               'Estoque CD', widget.stockItem['estoquedeposito'] ?? 'N/A'),
-          _buildInfoStockItem(
-              'Estoque Troca', widget.stockItem['estoquetroca'] ?? 'N/A'),
+          if (stockItem.containsKey('estoquetroca'))
+            _buildInfoStockItem(
+                'Estoque Troca', stockItem['estoquetroca'] ?? 'N/A'),
         ],
       ),
     );
