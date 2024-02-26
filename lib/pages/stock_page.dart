@@ -119,9 +119,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 4.0),
           _buildInfoItem(value),
@@ -145,9 +143,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 4.0),
           _buildSupplierItem(
@@ -172,9 +168,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
           _buildInfoStockItem(
@@ -205,9 +199,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
           _buildInfoPricesItem(
@@ -240,9 +232,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
           if (promoPrice != null && promoPrice!.isNotEmpty)
@@ -289,9 +279,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
           _buildInfoDatesItem(
@@ -322,9 +310,7 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
           _buildInfoAverageItem('Média Venda Diária',
@@ -353,7 +339,8 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -366,7 +353,7 @@ class _StockPageState extends State<StockPage> {
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.green, // Cor verde para o título
+        color: Colors.green,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -375,7 +362,8 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -397,11 +385,13 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             description,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -423,11 +413,13 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             description,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -457,11 +449,13 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             description,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             formattedValue,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -483,11 +477,13 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             description,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -509,11 +505,13 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           Text(
             description,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
             value,
-            style: const TextStyle(color: Colors.white),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
         ],
       ),
