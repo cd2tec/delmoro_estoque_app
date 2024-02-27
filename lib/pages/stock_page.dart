@@ -181,11 +181,13 @@ class _StockPageState extends State<StockPage> {
                 child: _buildInfoStockItem(
                     'Estoque CD', stockItem['estoquedeposito'] ?? 'N/A'),
               ),
+              if (stockItem.containsKey('estoquetroca'))
+                Expanded(
+                  child: _buildInfoStockItem(
+                      'Estoque Troca', stockItem['estoquetroca'] ?? 'N/A'),
+                ),
             ],
           ),
-          if (stockItem.containsKey('estoquetroca'))
-            _buildInfoStockItem(
-                'Estoque Troca', stockItem['estoquetroca'] ?? 'N/A'),
         ],
       ),
     );
@@ -260,13 +262,13 @@ class _StockPageState extends State<StockPage> {
                             Expanded(
                               child: _buildInfoPackingAndQuantityItem(
                                 'Quantidade',
-                                price['qtdembalagem'].toString() ?? 'N/A',
+                                price['qtdembalagem']?.toString() ?? 'N/A',
                               ),
                             ),
                             Expanded(
                               child: _buildInfoPackingAndQuantityItem(
                                 'Preço',
-                                price['precobase'].toString() ?? 'N/A',
+                                price['precobase']?.toString() ?? 'N/A',
                               ),
                             ),
                           ],
@@ -286,7 +288,7 @@ class _StockPageState extends State<StockPage> {
                 Expanded(
                   child: _buildInfoPackingAndQuantityItem(
                     'Quantidade',
-                    stockItem['quantidadeembalagem'] ?? 'N/A',
+                    stockItem['quantidadeembalagem']?.toString() ?? 'N/A',
                   ),
                 ),
               ],
@@ -314,14 +316,16 @@ class _StockPageState extends State<StockPage> {
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
+          if (stockItem['datainiciopromocao'] != null)
+            _buildInfoDatesItem(
+                'Data Início Promoção', stockItem['datainiciopromocao']),
+          if (stockItem['datafimpromocao'] != null)
+            _buildInfoDatesItem(
+                'Data Fim Promoção', stockItem['datafimpromocao']),
           _buildInfoDatesItem(
-              'Data Início Promoção', stockItem['datainiciopromocao'] ?? 'N/A'),
+              'Data Última Entrada', stockItem['dtaultentrada'] ?? '0'),
           _buildInfoDatesItem(
-              'Data Fim Promoção', stockItem['datafimpromocao'] ?? 'N/A'),
-          _buildInfoDatesItem(
-              'Data Última Entrada', stockItem['dtaultentrada'] ?? 'N/A'),
-          _buildInfoDatesItem(
-              'Data Última Venda', stockItem['dtaultvenda'] ?? 'N/A'),
+              'Data Última Venda', stockItem['dtaultvenda'] ?? '0'),
         ],
       ),
     );
