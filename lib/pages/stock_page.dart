@@ -320,18 +320,37 @@ class _StockPageState extends State<StockPage> {
           ),
           const SizedBox(height: 1.0),
           if (stockItem['datainiciopromocao'] != null)
-            _buildInfoDatesItem(
-                'Data Início Promoção', stockItem['datainiciopromocao']),
+            _buildInfoDatesItem('Data Início Promoção',
+                _formatDate(stockItem['datainiciopromocao'])),
           if (stockItem['datafimpromocao'] != null)
             _buildInfoDatesItem(
-                'Data Fim Promoção', stockItem['datafimpromocao']),
-          _buildInfoDatesItem(
-              'Data Última Entrada', stockItem['dtaultentrada'] ?? '0'),
-          _buildInfoDatesItem(
-              'Data Última Venda', stockItem['dtaultvenda'] ?? '0'),
+                'Data Fim Promoção', _formatDate(stockItem['datafimpromocao'])),
+          _buildInfoDatesItem('Data Última Entrada',
+              _formatDate(stockItem['dtaultentrada'] ?? '0')),
+          _buildInfoDatesItem('Data Última Venda',
+              _formatDate(stockItem['dtaultvenda'] ?? '0')),
         ],
       ),
     );
+  }
+
+  String _formatDate(String dateString) {
+    if (dateString.isEmpty || dateString == '0') {
+      return '';
+    }
+
+    try {
+      DateTime date = DateTime.parse(dateString);
+
+      String formattedDate = '${date.day.toString().padLeft(2, '0')}/'
+          '${date.month.toString().padLeft(2, '0')}/'
+          '${date.year.toString()}';
+
+      return formattedDate;
+    } catch (e) {
+      print('Erro ao formatar data: $e');
+      return '$e';
+    }
   }
 
   Widget _buildInfoAverage(String title, Map<String, dynamic> stockItem) {
