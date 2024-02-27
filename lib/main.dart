@@ -1,12 +1,14 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'package:delmoro_estoque_app/widgets/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:delmoro_estoque_app/pages/login_page.dart';
 import 'package:flutter/scheduler.dart' show timeDilation;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  Animate.restartOnHotReload = true;
 
   final prefs = await SharedPreferences.getInstance();
   final savedUsername = prefs.getString('username');

@@ -1,6 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
@@ -198,6 +199,7 @@ class _StockPageState extends State<StockPage> {
 
   Widget _buildInfoPrices(String title, Map<String, dynamic> stockItem) {
     final bool showCost = widget.showCost == "1";
+    final String pricePromo = stockItem['precopromocional'];
 
     return Container(
       width: double.infinity,
@@ -218,8 +220,8 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           _buildInfoPricesItem(
               'Preço Venda Normal', stockItem['precovendanormal'] ?? 'N/A'),
-          _buildInfoPricesItem('Preço Venda Promocional',
-              stockItem['precopromocional'] ?? 'N/A'),
+          if (pricePromo != null && pricePromo != '0')
+            _buildInfoPricesPromoItem('Preço Venda Promocional', pricePromo),
           if (showCost)
             _buildInfoPricesItem(
               'Custo Última Entrada',
@@ -488,6 +490,54 @@ class _StockPageState extends State<StockPage> {
             value,
             style: const TextStyle(
                 color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPricesPromoItem(String description, String value) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 500),
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.yellow,
+        borderRadius: BorderRadius.circular(8.0),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            spreadRadius: 5,
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+          )
+        ],
+        image: const DecorationImage(
+          image: AssetImage('images/logoMobile.png'),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            description,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8.0),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
