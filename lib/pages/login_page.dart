@@ -115,7 +115,6 @@ class _LoginPageState extends State<LoginPage> {
           bool hasPermission = false;
 
           if (userData['grantedaccess'] == "1") {
-            print('toaqui $userData');
             hasPermission = true;
           }
 

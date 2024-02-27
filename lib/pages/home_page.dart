@@ -105,7 +105,7 @@ class _HomePageState extends State<HomePage> {
             children: [
               _buildBarcodeScannerInput(context, widget.token),
               const SizedBox(height: 50),
-              if (isStockLoaded) _buildStockCarousel(),
+              if (isStockLoaded && storeIds.length > 1) _buildStockCarousel(),
               if (isStockLoading) const CircularProgressIndicator(),
               Container(
                 margin: const EdgeInsets.all(16.0),
@@ -190,6 +190,11 @@ class _HomePageState extends State<HomePage> {
           isStockLoading = false;
           storeInfo = stockList;
         });
+
+        // Se houver apenas uma loja, abre diretamente a StockPage
+        if (storeIds.length == 1) {
+          _openStockPage(context, stockList.first, result);
+        }
       } else {
         setState(() {
           isStockLoading = false;
@@ -232,6 +237,11 @@ class _HomePageState extends State<HomePage> {
             isStockLoading = false;
             storeInfo = stockList;
           });
+
+          // Se houver apenas uma loja, abre diretamente a StockPage
+          if (storeIds.length == 1) {
+            _openStockPage(context, stockList.first, result);
+          }
         } else {
           setState(() {
             isStockLoading = false;
