@@ -429,6 +429,16 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoStockItem(String description, String value) {
+    String formattedValue = 'N/A';
+    if (value != null && value != 'N/A') {
+      double numericValue = double.tryParse(value.replaceAll(',', '.')) ?? 0;
+      if (numericValue >= 1000) {
+        formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+      } else {
+        formattedValue = numericValue.toString();
+      }
+    }
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -447,7 +457,7 @@ class _StockPageState extends State<StockPage> {
                 color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
           Text(
-            value,
+            formattedValue,
             style: const TextStyle(
                 color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
@@ -490,7 +500,12 @@ class _StockPageState extends State<StockPage> {
       if (description == 'Preço') {
         formattedValue = double.parse(value.toString()).toStringAsFixed(5);
       } else {
-        formattedValue = value.toString();
+        if (value is num && value >= 1000) {
+          formattedValue = value.toString().replaceAllMapped(
+              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+        } else {
+          formattedValue = value.toString();
+        }
       }
     }
     return Container(
