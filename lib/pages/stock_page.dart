@@ -6,11 +6,13 @@ class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
   final String token;
   final String showCost;
+  final String barcode;
 
   const StockPage(
       {Key? key,
       required this.token,
       required this.showCost,
+      required this.barcode,
       required this.stockItem})
       : super(key: key);
 
@@ -65,6 +67,7 @@ class _StockPageState extends State<StockPage> {
 
   @override
   Widget build(BuildContext context) {
+    final barcode = widget.barcode;
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -90,7 +93,7 @@ class _StockPageState extends State<StockPage> {
           children: [
             const SizedBox(height: 14.0),
             _buildInfoDescription(
-                'Descrição', widget.stockItem['descricao'] ?? 'N/A'),
+                'Descrição - $barcode', widget.stockItem['descricao'] ?? 'N/A'),
             _buildInfoSupplier('Fornecedor', widget.stockItem),
             _buildInfoStock('Estoque', widget.stockItem),
             _buildInfoPackingAndQuantity(

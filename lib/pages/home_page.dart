@@ -151,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text(
-                                  'Código de barras inválido. Necessário ter 13 caracteres numéricos.'),
+                                  'Digite ou escaneie um código de barras.'),
                             ),
                           );
                         }
@@ -270,7 +270,8 @@ class _HomePageState extends State<HomePage> {
         itemBuilder: (BuildContext context, int index) {
           return GestureDetector(
             onTap: () {
-              _openStockPage(context, filteredStoreInfo[index]);
+              _openStockPage(
+                  context, filteredStoreInfo[index], _barcodeController.text);
             },
             child: _buildStoreCard(filteredStoreInfo[index], storeIdAndName),
           );
@@ -315,9 +316,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openStockPage(
-    BuildContext context,
-    Map<String, dynamic>? storeData,
-  ) {
+      BuildContext context, Map<String, dynamic>? storeData, String barcode) {
     if (storeData != null) {
       Navigator.push(
         context,
@@ -325,6 +324,7 @@ class _HomePageState extends State<HomePage> {
           builder: (context) => StockPage(
               token: widget.token,
               showCost: widget.showCost,
+              barcode: barcode,
               stockItem: storeData),
         ),
       );
