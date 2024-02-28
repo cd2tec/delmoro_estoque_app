@@ -1,6 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+
+import '../widgets/pulse_widget.dart';
 
 class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
@@ -178,11 +181,11 @@ class _StockPageState extends State<StockPage> {
             children: [
               Expanded(
                 child: _buildInfoStockItem(
-                    'Estoque Loja', stockItem['estoqueloja'] ?? 'N/A'),
+                    'Loja', stockItem['estoqueloja'] ?? 'N/A'),
               ),
               Expanded(
                 child: _buildInfoStockItem(
-                    'Estoque CD', stockItem['estoquedeposito'] ?? 'N/A'),
+                    'CD', stockItem['estoquedeposito'] ?? 'N/A'),
               ),
               if (stockItem.containsKey('estoquetroca'))
                 Expanded(
@@ -198,6 +201,7 @@ class _StockPageState extends State<StockPage> {
 
   Widget _buildInfoPrices(String title, Map<String, dynamic> stockItem) {
     final bool showCost = widget.showCost == "1";
+    final String pricePromo = stockItem['precopromocional'];
 
     return Container(
       width: double.infinity,
@@ -218,8 +222,8 @@ class _StockPageState extends State<StockPage> {
           const SizedBox(height: 1.0),
           _buildInfoPricesItem(
               'Preço Venda Normal', stockItem['precovendanormal'] ?? 'N/A'),
-          _buildInfoPricesItem('Preço Venda Promocional',
-              stockItem['precopromocional'] ?? 'N/A'),
+          if (pricePromo != null && pricePromo != '0')
+            _buildInfoPricesPromoItem('Preço Venda Promocional', pricePromo),
           if (showCost)
             _buildInfoPricesItem(
               'Custo Última Entrada',
@@ -429,8 +433,9 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoStockItem(String description, String value) {
-    String formattedValue = 'N/A';
-    if (value != null && value != 'N/A') {
+    String formattedValue = '0';
+
+    if (value != null && value != '0') {
       double numericValue = double.tryParse(value.replaceAll(',', '.')) ?? 0;
       if (numericValue >= 1000) {
         formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
@@ -490,6 +495,55 @@ class _StockPageState extends State<StockPage> {
                 color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildInfoPricesPromoItem(String description, String value) {
+    return PulseAnimationWidget(
+      duration: const Duration(milliseconds: 500),
+      child: Container(
+        width: 400.0,
+        height: 140.0,
+        margin: const EdgeInsets.symmetric(vertical: 5.0),
+        padding: const EdgeInsets.all(5.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              spreadRadius: 1,
+              blurRadius: 10,
+            )
+          ],
+          image: const DecorationImage(
+            image: AssetImage('images/star.png'),
+            fit: BoxFit.fill,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              description,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }
