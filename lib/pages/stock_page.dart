@@ -3,6 +3,8 @@ import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
+import '../widgets/pulse_widget.dart';
+
 class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
   final String token;
@@ -179,11 +181,11 @@ class _StockPageState extends State<StockPage> {
             children: [
               Expanded(
                 child: _buildInfoStockItem(
-                    'Estoque Loja', stockItem['estoqueloja'] ?? 'N/A'),
+                    'Loja', stockItem['estoqueloja'] ?? 'N/A'),
               ),
               Expanded(
                 child: _buildInfoStockItem(
-                    'Estoque CD', stockItem['estoquedeposito'] ?? 'N/A'),
+                    'CD', stockItem['estoquedeposito'] ?? 'N/A'),
               ),
               if (stockItem.containsKey('estoquetroca'))
                 Expanded(
@@ -431,8 +433,9 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoStockItem(String description, String value) {
-    String formattedValue = 'N/A';
-    if (value != null && value != 'N/A') {
+    String formattedValue = '0';
+
+    if (value != null && value != '0') {
       double numericValue = double.tryParse(value.replaceAll(',', '.')) ?? 0;
       if (numericValue >= 1000) {
         formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
@@ -497,49 +500,50 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoPricesPromoItem(String description, String value) {
-    return AnimatedContainer(
+    return PulseAnimationWidget(
       duration: const Duration(milliseconds: 500),
-      margin: const EdgeInsets.symmetric(vertical: 8.0),
-      padding: const EdgeInsets.all(8.0),
-      decoration: BoxDecoration(
-        color: Colors.yellow,
-        borderRadius: BorderRadius.circular(8.0),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            spreadRadius: 5,
-            blurRadius: 10,
-            offset: const Offset(0, 0),
-          )
-        ],
-        image: const DecorationImage(
-          image: AssetImage('images/logoMobile.png'),
-          fit: BoxFit.cover,
+      child: Container(
+        width: 400.0,
+        height: 140.0,
+        margin: const EdgeInsets.symmetric(vertical: 5.0),
+        padding: const EdgeInsets.all(5.0),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(5.0),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              spreadRadius: 1,
+              blurRadius: 10,
+            )
+          ],
+          image: const DecorationImage(
+            image: AssetImage('images/star.png'),
+            fit: BoxFit.fill,
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            description,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              description,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8.0),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.black,
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
