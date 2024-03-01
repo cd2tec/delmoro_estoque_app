@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, prefer_interpolation_to_compose_strings
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -95,8 +95,7 @@ class _StockPageState extends State<StockPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 14.0),
-            _buildInfoDescription(
-                'Descrição - $barcode', widget.stockItem['descricao'] ?? 'N/A'),
+            _buildInfoDescription('Descrição - $barcode', widget.stockItem),
             _buildInfoSupplier('Fornecedor', widget.stockItem),
             _buildInfoStock('Estoque', widget.stockItem),
             _buildInfoPackingAndQuantity(
@@ -104,19 +103,28 @@ class _StockPageState extends State<StockPage> {
             _buildInfoPrices('Preços', widget.stockItem),
             _buildInfoDates('Datas', widget.stockItem),
             _buildInfoAverage('Médias', widget.stockItem),
+            if (widget.stockItem['qtdsaldotransito'] != null)
+              _buildPendingRequest(
+                  'Pedido Pendente a Receber', widget.stockItem),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoDescription(String title, String value) {
+  Widget _buildInfoDescription(String title, Map<String, dynamic> stockItem) {
+    Color backgroundColor = Colors.green;
+
+    if (stockItem['inativo'] == "I") {
+      backgroundColor = Colors.red;
+    }
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 3.0),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.green,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -128,7 +136,7 @@ class _StockPageState extends State<StockPage> {
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 4.0),
-          _buildInfoItem(value),
+          _buildInfoItem(widget.stockItem['descricao'], backgroundColor),
         ],
       ),
     );
@@ -225,7 +233,7 @@ class _StockPageState extends State<StockPage> {
           if (pricePromo != null && pricePromo != '0')
             _buildInfoPricesPromoItem('Preço Venda Promocional', pricePromo),
           if (showCost)
-            _buildInfoPricesItem(
+            _buildShowCostItem(
               'Custo Última Entrada',
               stockItem['custoultentrada'] ?? 'N/A',
             ),
@@ -386,13 +394,13 @@ class _StockPageState extends State<StockPage> {
     );
   }
 
-  Widget _buildInfoItem(String value) {
+  Widget _buildInfoItem(String value, Color backgroundColor) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
       padding: const EdgeInsets.all(8.0),
       decoration: BoxDecoration(
-        color: Colors.green, // Cor verde para o título
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(8.0),
       ),
       child: Column(
@@ -440,6 +448,12 @@ class _StockPageState extends State<StockPage> {
       if (numericValue >= 1000) {
         formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
             RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+        if (numericValue >= 1000000) {
+          formattedValue = formattedValue.replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                  (Match m) => '${m[1]}.') +
+              'M';
+        }
       } else {
         formattedValue = numericValue.toString();
       }
@@ -556,7 +570,16 @@ class _StockPageState extends State<StockPage> {
       } else {
         if (value is num && value >= 1000) {
           formattedValue = value.toString().replaceAllMapped(
-              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                (Match m) => '${m[1]}.',
+              );
+          if (value >= 1000000) {
+            formattedValue = formattedValue.replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                  (Match m) => '${m[1]}.',
+                ) +
+                'M';
+          }
         } else {
           formattedValue = value.toString();
         }
@@ -577,12 +600,18 @@ class _StockPageState extends State<StockPage> {
           Text(
             description,
             style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           Text(
             formattedValue,
             style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ],
       ),
@@ -618,6 +647,138 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoAverageItem(String description, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingRequest(
+      String description, Map<String, dynamic> stockItem) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 1.0),
+          _buildPendingRequestBalanceItem(
+              'Quantidade Saldo Trânsito', stockItem['qtdsaldotransito']),
+          _buildPendingRequestItem('Data Emissão Trânsito',
+              _formatDate(stockItem['dtaemissaotransito'])),
+          _buildPendingRequestItem('Data Recebimento Trânsito',
+              _formatDate(stockItem['dtarecbtotransito'])),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingRequestBalanceItem(String description, String value) {
+    String formattedValue = '0';
+
+    if (value != null && value != '0') {
+      double numericValue = double.tryParse(value.replaceAll(',', '.')) ?? 0;
+      if (numericValue >= 1000) {
+        formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+        if (numericValue >= 1000000) {
+          formattedValue = formattedValue.replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                  (Match m) => '${m[1]}.') +
+              'M';
+        }
+      } else {
+        formattedValue = numericValue.toString();
+      }
+    }
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            formattedValue,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingRequestItem(String description, String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShowCostItem(String description, String value) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),

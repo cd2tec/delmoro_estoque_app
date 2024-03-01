@@ -191,7 +191,6 @@ class _HomePageState extends State<HomePage> {
           storeInfo = stockList;
         });
 
-        // Se houver apenas uma loja, abre diretamente a StockPage
         if (storeIds.length == 1) {
           _openStockPage(context, stockList.first, result);
         }
@@ -238,7 +237,6 @@ class _HomePageState extends State<HomePage> {
             storeInfo = stockList;
           });
 
-          // Se houver apenas uma loja, abre diretamente a StockPage
           if (storeIds.length == 1) {
             _openStockPage(context, stockList.first, result);
           }
