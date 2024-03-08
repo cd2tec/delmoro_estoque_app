@@ -695,11 +695,9 @@ class _StockPageState extends State<StockPage> {
           ),
           const SizedBox(height: 1.0),
           _buildPendingRequestBalanceItem(
-              'Quantidade Saldo Trânsito', stockItem['qtdsaldotransito']),
-          _buildPendingRequestItem('Data Emissão Trânsito',
+              'Quantidade Saldo Pedido', stockItem['qtdsaldotransito']),
+          _buildPendingRequestItem('Data Emissão Pedido',
               _formatDate(stockItem['dtaemissaotransito'])),
-          _buildPendingRequestItem('Data Recebimento Trânsito',
-              _formatDate(stockItem['dtarecbtotransito'])),
         ],
       ),
     );
