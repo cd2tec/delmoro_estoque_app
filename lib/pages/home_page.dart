@@ -37,6 +37,7 @@ class _HomePageState extends State<HomePage> {
   List<Map<String, dynamic>> storeIdAndName = [];
   bool isStockLoaded = false;
   bool isStockLoading = false;
+  int? selectedStoreId;
 
   @override
   void initState() {
@@ -44,6 +45,11 @@ class _HomePageState extends State<HomePage> {
     _apiService = ApiService();
     storeIds = extractStoreIds(widget.permissions);
     storeIdAndName = extractStoreIdAndName(widget.permissions);
+
+    if (storeIds.length == 1) {
+      print(storeIds);
+      selectedStoreId = storeIds.first;
+    }
   }
 
   @override
@@ -103,9 +109,9 @@ class _HomePageState extends State<HomePage> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              if (storeIds.length > 1) _buildStoreSelection(),
               _buildBarcodeScannerInput(context, widget.token),
               const SizedBox(height: 50),
-              if (isStockLoaded && storeIds.length > 1) _buildStockCarousel(),
               if (isStockLoading) const CircularProgressIndicator(),
               Container(
                 margin: const EdgeInsets.all(16.0),
@@ -113,6 +119,53 @@ class _HomePageState extends State<HomePage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildStoreSelection() {
+    return Container(
+      margin: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Selecione a loja',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                ),
+                width: 300,
+                child: DropdownButton<int>(
+                  isExpanded: true,
+                  value: selectedStoreId,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedStoreId = value;
+                    });
+                  },
+                  underline: Container(
+                    height: 0,
+                  ),
+                  items: storeIds.map<DropdownMenuItem<int>>((int value) {
+                    return DropdownMenuItem<int>(
+                      value: value,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text('Loja: $value'),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -142,20 +195,31 @@ class _HomePageState extends State<HomePage> {
                       borderSide: BorderSide(color: Colors.green),
                     ),
                     hintText: 'Escaneie ou digite',
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.arrow_forward),
-                      onPressed: () async {
-                        if (_barcodeController.text.isNotEmpty) {
-                          _searchBarcode(context, token);
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                  'Digite ou escaneie um código de barras.'),
-                            ),
-                          );
-                        }
-                      },
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_forward),
+                          onPressed: () async {
+                            if (_barcodeController.text.isNotEmpty) {
+                              _searchBarcode(context, token);
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                      'Digite ou escaneie um código de barras.'),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _barcodeController.clear();
+                          },
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -180,7 +244,8 @@ class _HomePageState extends State<HomePage> {
     });
 
     String result = _barcodeController.text;
-    _apiService.getStock(token, result, storeIds).then((dynamic stockData) {
+    _apiService
+        .getStock(token, result, [selectedStoreId!]).then((dynamic stockData) {
       if (stockData != null && stockData is List && stockData.isNotEmpty) {
         List<Map<String, dynamic>> stockList =
             stockData.cast<Map<String, dynamic>>();
@@ -191,9 +256,7 @@ class _HomePageState extends State<HomePage> {
           storeInfo = stockList;
         });
 
-        if (storeIds.length == 1) {
-          _openStockPage(context, stockList.first, result);
-        }
+        _openStockPage(context, stockList.first, result);
       } else {
         setState(() {
           isStockLoading = false;
@@ -226,7 +289,8 @@ class _HomePageState extends State<HomePage> {
         _barcodeController.text = barcode;
         isStockLoading = true;
       });
-      _apiService.getStock(token, result, storeIds).then((dynamic stockData) {
+      _apiService.getStock(token, result, [selectedStoreId!]).then(
+          (dynamic stockData) {
         if (stockData != null && stockData is List && stockData.isNotEmpty) {
           List<Map<String, dynamic>> stockList =
               stockData.cast<Map<String, dynamic>>();
@@ -237,9 +301,7 @@ class _HomePageState extends State<HomePage> {
             storeInfo = stockList;
           });
 
-          if (storeIds.length == 1) {
-            _openStockPage(context, stockList.first, result);
-          }
+          _openStockPage(context, stockList.first, result);
         } else {
           setState(() {
             isStockLoading = false;
@@ -261,66 +323,6 @@ class _HomePageState extends State<HomePage> {
         );
       });
     }
-  }
-
-  Widget _buildStockCarousel() {
-    List<Map<String, dynamic>> filteredStoreInfo = storeInfo.where((item) {
-      String storeId = item['nroempresa'];
-
-      return storeIdAndName.any((store) => store['id'] == int.parse(storeId));
-    }).toList();
-
-    return SizedBox(
-      height: 200.0,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: filteredStoreInfo.length,
-        itemBuilder: (BuildContext context, int index) {
-          return GestureDetector(
-            onTap: () {
-              _openStockPage(
-                  context, filteredStoreInfo[index], _barcodeController.text);
-            },
-            child: _buildStoreCard(filteredStoreInfo[index], storeIdAndName),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildStoreCard(Map<String, dynamic> filteredStoreInfo,
-      List<Map<String, dynamic>> storeIdAndName) {
-    final String storeId = filteredStoreInfo['nroempresa'].toString();
-    final Map<String, dynamic>? storeData = storeIdAndName
-        .firstWhereOrNull((store) => store['id'] == int.parse(storeId));
-    final String storeName = storeData != null ? storeData['storename'] : 'N/A';
-
-    return Container(
-      width: 160.0,
-      height: 200.0,
-      margin: const EdgeInsets.symmetric(horizontal: 8.0),
-      child: Card(
-        child: Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                'LOJA: $storeId',
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 14.0),
-              ),
-              SizedBox(height: 8),
-              Text(
-                storeName,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 16.0),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 
   void _openStockPage(
