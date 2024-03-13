@@ -71,6 +71,7 @@ class _StockPageState extends State<StockPage> {
   @override
   Widget build(BuildContext context) {
     final barcode = widget.barcode;
+    final bool showCost = widget.showCost == "1";
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -101,6 +102,11 @@ class _StockPageState extends State<StockPage> {
             _buildInfoPackingAndQuantity(
                 'Embalagens e Quantidades', widget.stockItem),
             _buildInfoPrices('Preços', widget.stockItem),
+            if (showCost)
+              _buildShowCost(
+                'Custo Última Entrada',
+                widget.stockItem,
+              ),
             _buildInfoDates('Datas', widget.stockItem),
             _buildInfoAverage('Médias', widget.stockItem),
             if (widget.stockItem['qtdsaldotransito'] != null)
@@ -232,11 +238,6 @@ class _StockPageState extends State<StockPage> {
               'Preço Venda Normal', stockItem['precovendanormal'] ?? 'N/A'),
           if (pricePromo != null && pricePromo != '0')
             _buildInfoPricesPromoItem('Preço Venda Promocional', pricePromo),
-          if (showCost)
-            _buildShowCostItem(
-              'Custo Última Entrada',
-              stockItem['custoultentrada'] ?? 'N/A',
-            ),
         ],
       ),
     );
@@ -566,7 +567,7 @@ class _StockPageState extends State<StockPage> {
     String formattedValue = 'N/A';
     if (value != null && value != 'N/A') {
       if (description == 'Preço') {
-        formattedValue = double.parse(value.toString()).toStringAsFixed(5);
+        formattedValue = double.parse(value.toString()).toStringAsFixed(2);
       } else {
         if (value is num && value >= 1000) {
           formattedValue = value.toString().replaceAllMapped(
@@ -776,7 +777,7 @@ class _StockPageState extends State<StockPage> {
     );
   }
 
-  Widget _buildShowCostItem(String description, String value) {
+  Widget _buildShowCost(String description, Map<String, dynamic> stockItem) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -794,6 +795,26 @@ class _StockPageState extends State<StockPage> {
             style: const TextStyle(
                 color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
           ),
+          const SizedBox(height: 1.0),
+          _buildShowCostItem(stockItem['custoultentrada']),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShowCostItem(String value) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
           Text(
             value,
             style: const TextStyle(

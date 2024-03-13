@@ -88,7 +88,7 @@ class ApiService {
   }
 
   Future<List<dynamic>> getStock(
-      String token, String barcode, List storeids) async {
+      String token, String barcode, List selectedStoreId) async {
     var getStockUrl = apiUrl.resolve('/stock');
 
     try {
@@ -100,7 +100,7 @@ class ApiService {
           },
           body: jsonEncode({
             'codacesso': barcode,
-            'storeids': storeids,
+            'storeids': selectedStoreId,
           }));
 
       if (response.statusCode == 200) {
