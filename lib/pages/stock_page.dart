@@ -1,8 +1,8 @@
 // ignore_for_file: library_private_types_in_public_api, prefer_interpolation_to_compose_strings
 import 'package:delmoro_estoque_app/services/api_service.dart';
+import 'package:delmoro_estoque_app/widgets/stock_modal_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-
 import '../widgets/pulse_widget.dart';
 
 class StockPage extends StatefulWidget {
@@ -10,13 +10,16 @@ class StockPage extends StatefulWidget {
   final String token;
   final String showCost;
   final String barcode;
+  final List<int> permittedStores;
 
   const StockPage(
       {Key? key,
       required this.token,
       required this.showCost,
       required this.barcode,
-      required this.stockItem})
+      required this.stockItem,
+      required this.permittedStores,
+      int? selectedStoreId})
       : super(key: key);
 
   @override
@@ -25,11 +28,45 @@ class StockPage extends StatefulWidget {
 
 class _StockPageState extends State<StockPage> {
   List<Map<String, dynamic>>? promoPrice;
+  List<dynamic>? stockAllStores;
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     _getPrice();
+    _getStock();
+  }
+
+  void _getStock() async {
+    ApiService apiService = ApiService();
+    try {
+      List<dynamic> response = await apiService.getStock(
+        widget.token,
+        widget.barcode,
+        widget.permittedStores,
+      );
+
+      if (response != null && response.isNotEmpty) {
+        List<Map<String, dynamic>> stockList =
+            response.cast<Map<String, dynamic>>();
+        setState(() {
+          stockAllStores = response;
+        });
+      } else {
+        setState(() {
+          stockAllStores = null;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        stockAllStores = [];
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void _getPrice() async {
@@ -65,7 +102,23 @@ class _StockPageState extends State<StockPage> {
       setState(() {
         promoPrice = [];
       });
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
+  }
+
+  void _showStockModal(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StockModal(
+            stockItems: stockAllStores != null
+                ? stockAllStores!.cast<Map<String, dynamic>>()
+                : []);
+      },
+    );
   }
 
   @override
@@ -90,31 +143,36 @@ class _StockPageState extends State<StockPage> {
         ),
         backgroundColor: Colors.green,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(14.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 14.0),
-            _buildInfoDescription('Descrição - $barcode', widget.stockItem),
-            _buildInfoSupplier('Fornecedor', widget.stockItem),
-            _buildInfoStock('Estoque', widget.stockItem),
-            _buildInfoPackingAndQuantity(
-                'Embalagens e Quantidades', widget.stockItem),
-            _buildInfoPrices('Preços', widget.stockItem),
-            if (showCost)
-              _buildShowCost(
-                'Custo Última Entrada',
-                widget.stockItem,
+      body: isLoading // Verifica se ainda está carregando
+          ? Center(
+              child:
+                  CircularProgressIndicator()) // Exibe o indicador de carregamento
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(14.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 14.0),
+                  _buildInfoDescription(
+                      'Descrição - $barcode', widget.stockItem),
+                  _buildInfoSupplier('Fornecedor', widget.stockItem),
+                  _buildInfoStock('Estoque', widget.stockItem),
+                  _buildInfoPackingAndQuantity(
+                      'Embalagens e Quantidades', widget.stockItem),
+                  _buildInfoPrices('Preços', widget.stockItem),
+                  if (showCost)
+                    _buildShowCost(
+                      'Custo Última Entrada',
+                      widget.stockItem,
+                    ),
+                  _buildInfoDates('Datas', widget.stockItem),
+                  _buildInfoAverage('Médias', widget.stockItem),
+                  if (widget.stockItem['qtdsaldotransito'] != null)
+                    _buildPendingRequest(
+                        'Pedido Pendente a Receber', widget.stockItem),
+                ],
               ),
-            _buildInfoDates('Datas', widget.stockItem),
-            _buildInfoAverage('Médias', widget.stockItem),
-            if (widget.stockItem['qtdsaldotransito'] != null)
-              _buildPendingRequest(
-                  'Pedido Pendente a Receber', widget.stockItem),
-          ],
-        ),
-      ),
+            ),
     );
   }
 
@@ -174,6 +232,11 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget _buildInfoStock(String title, Map<String, dynamic> stockItem) {
+    bool hasStock = stockAllStores != null && stockAllStores!.isNotEmpty;
+
+    final bool showStockTroca = stockItem.containsKey('estoquetroca') &&
+        int.tryParse(stockItem['estoquetroca'] ?? '0')! > 0;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 3.0),
@@ -188,7 +251,10 @@ class _StockPageState extends State<StockPage> {
           Text(
             title,
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
           const SizedBox(height: 1.0),
           Row(
@@ -201,13 +267,46 @@ class _StockPageState extends State<StockPage> {
                 child: _buildInfoStockItem(
                     'CD', stockItem['estoquedeposito'] ?? 'N/A'),
               ),
-              if (stockItem.containsKey('estoquetroca'))
+              if (showStockTroca)
                 Expanded(
                   child: _buildInfoStockItem(
-                      'Estoque Troca', stockItem['estoquetroca'] ?? 'N/A'),
+                    'Estoque Troca',
+                    stockItem['estoquetroca'],
+                  ),
                 ),
             ],
           ),
+          if (hasStock)
+            GestureDetector(
+              onTap: () {
+                _showStockModal(context);
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Tooltip(
+                    message: 'Estoque Lojas',
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.visibility,
+                        color: Colors.indigo,
+                      ),
+                      onPressed: () {
+                        _showStockModal(context);
+                      },
+                    ),
+                  ),
+                  const Text(
+                    'Estoque Lojas',
+                    style: TextStyle(
+                      color: Colors.indigo,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8.0),
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -361,7 +460,6 @@ class _StockPageState extends State<StockPage> {
 
       return formattedDate;
     } catch (e) {
-      print('Erro ao formatar data: $e');
       return '$e';
     }
   }
