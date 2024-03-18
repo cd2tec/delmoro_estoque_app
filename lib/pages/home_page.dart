@@ -38,6 +38,7 @@ class _HomePageState extends State<HomePage> {
   bool isStockLoaded = false;
   bool isStockLoading = false;
   int? selectedStoreId;
+  List<int> storesNotSelected = [];
 
   @override
   void initState() {
@@ -47,7 +48,6 @@ class _HomePageState extends State<HomePage> {
     storeIdAndName = extractStoreIdAndName(widget.permissions);
 
     if (storeIds.length == 1) {
-      print(storeIds);
       selectedStoreId = storeIds.first;
     }
   }
@@ -124,6 +124,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildStoreSelection() {
+    storesNotSelected = storeIds.where((id) => id != selectedStoreId).toList();
+
     return Container(
       margin: const EdgeInsets.all(16.0),
       child: Column(
@@ -148,6 +150,8 @@ class _HomePageState extends State<HomePage> {
                     setState(() {
                       selectedStoreId = value;
                     });
+                    storesNotSelected =
+                        storeIds.where((id) => id != selectedStoreId).toList();
                   },
                   underline: Container(
                     height: 0,
@@ -256,7 +260,7 @@ class _HomePageState extends State<HomePage> {
           storeInfo = stockList;
         });
 
-        _openStockPage(context, stockList.first, result);
+        _openStockPage(context, stockList.first, result, storesNotSelected);
       } else {
         setState(() {
           isStockLoading = false;
@@ -301,7 +305,7 @@ class _HomePageState extends State<HomePage> {
             storeInfo = stockList;
           });
 
-          _openStockPage(context, stockList.first, result);
+          _openStockPage(context, stockList.first, result, storesNotSelected);
         } else {
           setState(() {
             isStockLoading = false;
@@ -325,8 +329,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _openStockPage(
-      BuildContext context, Map<String, dynamic>? storeData, String barcode) {
+  void _openStockPage(BuildContext context, Map<String, dynamic>? storeData,
+      String barcode, List<int> storesNotSelected) {
     if (storeData != null) {
       Navigator.push(
         context,
@@ -335,7 +339,8 @@ class _HomePageState extends State<HomePage> {
               token: widget.token,
               showCost: widget.showCost,
               barcode: barcode,
-              stockItem: storeData),
+              stockItem: storeData,
+              permittedStores: storesNotSelected),
         ),
       );
     }
