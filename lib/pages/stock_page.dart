@@ -143,10 +143,8 @@ class _StockPageState extends State<StockPage> {
         ),
         backgroundColor: Colors.green,
       ),
-      body: isLoading // Verifica se ainda está carregando
-          ? Center(
-              child:
-                  CircularProgressIndicator()) // Exibe o indicador de carregamento
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(14.0),
               child: Column(
@@ -314,7 +312,7 @@ class _StockPageState extends State<StockPage> {
 
   Widget _buildInfoPrices(String title, Map<String, dynamic> stockItem) {
     final bool showCost = widget.showCost == "1";
-    final String pricePromo = stockItem['precopromocional'];
+    final String? pricePromo = stockItem['precopromocional'];
 
     return Container(
       width: double.infinity,
@@ -334,7 +332,7 @@ class _StockPageState extends State<StockPage> {
           ),
           const SizedBox(height: 1.0),
           _buildInfoPricesItem(
-              'Preço Venda Normal', stockItem['precovendanormal'] ?? 'N/A'),
+              'Preço Venda Normal', stockItem['precovendanormal']),
           if (pricePromo != null && pricePromo != '0')
             _buildInfoPricesPromoItem('Preço Venda Promocional', pricePromo),
         ],
@@ -546,17 +544,20 @@ class _StockPageState extends State<StockPage> {
       double numericValue = double.tryParse(value.replaceAll(',', '.')) ?? 0;
       if (numericValue >= 1000) {
         formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
-            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+              (Match m) => '${m[1]}.',
+            );
         if (numericValue >= 1000000) {
           formattedValue = formattedValue.replaceAllMapped(
-                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-                  (Match m) => '${m[1]}.') +
-              'M';
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+            (Match m) => '${m[1]}.',
+          );
         }
       } else {
         formattedValue = numericValue.toString();
       }
     }
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(vertical: 8.0),
