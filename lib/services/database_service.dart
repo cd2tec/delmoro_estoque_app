@@ -11,15 +11,20 @@ class DatabaseService {
       version: 1,
       onCreate: (database, version) async {
         await database.execute(
-          'CREATE TABLE tokens(id INTEGER PRIMARY KEY, token TEXT)',
+          'CREATE TABLE tokens(id INTEGER PRIMARY KEY, user TEXT, token TEXT )',
         );
       },
     );
   }
 
-  static Future<String?> getToken() async {
+  static Future<String?> getToken(String user) async {
     final Database database = await initializeDatabase();
-    List<Map<String, dynamic>> tokens = await database.query('tokens');
+
+    List<Map<String, dynamic>> tokens = await database.query(
+      'tokens',
+      where: 'user = ?',
+      whereArgs: [user],
+    );
 
     if (tokens.isNotEmpty) {
       return tokens.first['token'] as String?;
@@ -36,12 +41,12 @@ class DatabaseService {
     await database.delete('tokens');
   }
 
-  static Future<void> saveToken(String token) async {
+  static Future<void> saveToken(String user, String token) async {
     final Database database = await initializeDatabase();
 
     await database.insert(
       'tokens',
-      {'token': token},
+      {'user': user, 'token': token},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
   }

@@ -554,7 +554,7 @@ class _StockPageState extends State<StockPage> {
           );
         }
       } else {
-        formattedValue = numericValue.toString();
+        formattedValue = value;
       }
     }
 
