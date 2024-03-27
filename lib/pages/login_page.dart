@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
     String username = _usernameController.text;
     String password = _passwordController.text;
     try {
-      final token = await DatabaseService.getToken();
+      final token = await DatabaseService.getToken(username);
 
       if (token != null) {
         final result = await service.login(
@@ -154,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
         final token = service.generateToken(
             _usernameController.text, _passwordController.text);
 
-        await DatabaseService.saveToken(token);
+        await DatabaseService.saveToken(_usernameController.text, token);
         final result = await service.login(
             _usernameController.text, _passwordController.text, token);
         if (result.success) {
@@ -188,7 +188,7 @@ class _LoginPageState extends State<LoginPage> {
               const SnackBar(
                 backgroundColor: Colors.redAccent,
                 content: Text(
-                    'Permissão negada. Entre em contato com o administrador'),
+                    'Permissão negada. Entre em contato com o administrador para liberar o acesso.'),
                 behavior: SnackBarBehavior.floating,
               ),
             );
@@ -199,9 +199,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           backgroundColor: Colors.redAccent,
-          content: Text('Erro durante a autenticação'),
+          content: Text('Erro durante a autenticação: $error'),
           behavior: SnackBarBehavior.floating,
         ),
       );
