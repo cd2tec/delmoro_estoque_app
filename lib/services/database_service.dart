@@ -34,11 +34,15 @@ class DatabaseService {
   }
 
   static Future<void> deleteToken() async {
-    final Database database = await openDatabase(
+    final Database database = await initializeDatabase();
+    await openDatabase(
       join(await getDatabasesPath(), 'database.db'),
     );
 
     await database.delete('tokens');
+    List<Map<String, dynamic>> tokens = await database.query(
+      'tokens',
+    );
   }
 
   static Future<void> saveToken(String user, String token) async {

@@ -161,7 +161,7 @@ class _HomePageState extends State<HomePage> {
                       value: value,
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text('Loja: $value'),
+                        child: Text('Loja $value'),
                       ),
                     );
                   }).toList(),
