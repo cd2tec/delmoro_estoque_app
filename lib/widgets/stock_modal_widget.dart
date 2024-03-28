@@ -57,7 +57,7 @@ class StockModal extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Loja: ${item['nroempresa']}',
+                          'Loja ${item['nroempresa']}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

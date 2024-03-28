@@ -117,7 +117,8 @@ class ClearTokensButtonWidget extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.grey[850],
       ),
-      child: const Text('Problemas ao acessar? Clique para resetar o app'),
+      child: const Text('Problemas ao acessar? Clique para resetar o app',
+          style: TextStyle(fontSize: 12)),
     );
   }
 }

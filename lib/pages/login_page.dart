@@ -54,15 +54,15 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             SizedBox(
-              height: MediaQuery.of(context).size.height * 0.3,
+              height: MediaQuery.of(context).size.height * 0.2,
               child: const LogoWidget(),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             UsernameInputWidget(
               controller: _usernameController,
               onChanged: _updateButtonState,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 14),
             PasswordInputWidget(
               controller: _passwordController,
               onChanged: _updateButtonState,
@@ -96,7 +96,7 @@ class _LoginPageState extends State<LoginPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Confirmação'),
-          content: Text('Deseja limpar os dados?'),
+          content: Text('Deseja limpar os dados do app?'),
           actions: <Widget>[
             TextButton(
               child: Text('Cancelar'),
