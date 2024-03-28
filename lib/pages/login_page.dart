@@ -1,4 +1,5 @@
-// ignore_for_file: use_build_context_synchronously, library_private_types_in_public_api
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:delmoro_estoque_app/services/auth_service.dart';
@@ -75,10 +76,67 @@ class _LoginPageState extends State<LoginPage> {
                     onPressed: _isButtonEnabled ? () => _authenticate() : () {},
                     isEnabled: _isButtonEnabled,
                   ),
+            const SizedBox(height: 16),
+            ClearTokensButtonWidget(
+              onPressed: () => _showConfirmationDialog(),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _showConfirmationDialog() async {
+    if (!mounted) return;
+
+    BuildContext? dialogContext = context;
+
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Confirmação'),
+          content: Text('Deseja limpar os dados?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Cancelar'),
+              onPressed: () {
+                Navigator.of(dialogContext!).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Sim'),
+              onPressed: () async {
+                Navigator.of(dialogContext!).pop();
+                await _clearToken();
+                if (mounted) {
+                  showDialog(
+                    context: dialogContext!,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Limpeza de dados finalizada'),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('OK'),
+                          ),
+                        ],
+                      );
+                    },
+                  );
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _clearToken() async {
+    await DatabaseService.deleteToken();
   }
 
   void _updateButtonState() {
