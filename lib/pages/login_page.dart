@@ -1,12 +1,15 @@
 // ignore_for_file: use_build_context_synchronously
-
+import 'package:delmoro_estoque_app/widgets/login/clear_tokens_button_widget.dart';
+import 'package:delmoro_estoque_app/widgets/login/login_button_widget.dart';
+import 'package:delmoro_estoque_app/widgets/login/logo_widget.dart';
+import 'package:delmoro_estoque_app/widgets/login/password_input_widget.dart';
+import 'package:delmoro_estoque_app/widgets/login/username_input_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:delmoro_estoque_app/services/auth_service.dart';
 import 'package:delmoro_estoque_app/pages/home_page.dart';
 import 'package:delmoro_estoque_app/services/database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widgets/widgets.dart';
 
 class LoginPage extends StatefulWidget {
   final String? savedUsername;
@@ -95,17 +98,17 @@ class _LoginPageState extends State<LoginPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Confirmação'),
-          content: Text('Deseja limpar os dados do app?'),
+          title: const Text('Confirmação'),
+          content: const Text('Deseja limpar os dados do app?'),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
               onPressed: () {
                 Navigator.of(dialogContext!).pop();
               },
             ),
             TextButton(
-              child: Text('Sim'),
+              child: const Text('Sim'),
               onPressed: () async {
                 Navigator.of(dialogContext!).pop();
                 await _clearToken();
@@ -114,13 +117,13 @@ class _LoginPageState extends State<LoginPage> {
                     context: dialogContext!,
                     builder: (BuildContext context) {
                       return AlertDialog(
-                        title: Text('Limpeza de dados finalizada'),
+                        title: const Text('Limpeza de dados finalizada'),
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.of(context).pop();
                             },
-                            child: Text('OK'),
+                            child: const Text('OK'),
                           ),
                         ],
                       );
