@@ -1,5 +1,6 @@
 // ignore_for_file: library_private_types_in_public_api
-import 'package:delmoro_estoque_app/widgets/widgets.dart';
+import 'package:delmoro_estoque_app/widgets/login/logo_user_widget.dart';
+import 'package:delmoro_estoque_app/widgets/login/logo_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:shared_preferences/shared_preferences.dart';

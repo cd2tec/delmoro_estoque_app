@@ -1,9 +1,9 @@
 // ignore_for_file: library_private_types_in_public_api, prefer_interpolation_to_compose_strings
 import 'package:delmoro_estoque_app/services/api_service.dart';
-import 'package:delmoro_estoque_app/widgets/stock_modal_widget.dart';
+import 'package:delmoro_estoque_app/widgets/stock/stock_modal_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../widgets/pulse_widget.dart';
+import '../widgets/stock/pulse_widget.dart';
 
 class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockItem;
@@ -153,7 +153,6 @@ class _StockPageState extends State<StockPage> {
                   const SizedBox(height: 14.0),
                   _buildInfoDescription(
                       'Descrição - $barcode', widget.stockItem),
-                  _buildInfoSupplier('Fornecedor', widget.stockItem),
                   _buildInfoStock('Estoque', widget.stockItem),
                   _buildInfoPackingAndQuantity(
                       'Embalagens e Quantidades', widget.stockItem),
@@ -163,11 +162,12 @@ class _StockPageState extends State<StockPage> {
                       'Custo Última Entrada',
                       widget.stockItem,
                     ),
-                  _buildInfoDates('Datas', widget.stockItem),
+                  _buildInfoDates('Datas e Quantidade', widget.stockItem),
                   _buildInfoAverage('Médias', widget.stockItem),
                   if (widget.stockItem['qtdsaldotransito'] != null)
                     _buildPendingRequest(
                         'Pedido Pendente a Receber', widget.stockItem),
+                  _buildInfoSupplier('Fornecedor', widget.stockItem),
                 ],
               ),
             ),
@@ -437,6 +437,8 @@ class _StockPageState extends State<StockPage> {
                 'Data Fim Promoção', _formatDate(stockItem['datafimpromocao'])),
           _buildInfoDatesItem('Data Última Entrada',
               _formatDate(stockItem['dtaultentrada'] ?? '0')),
+          _buildInfoDatesQuantityItem(
+              'Quantidade Última Entrada', (stockItem['qtdultentrada'] ?? '0')),
           _buildInfoDatesItem('Data Última Venda',
               _formatDate(stockItem['dtaultvenda'] ?? '0')),
         ],
@@ -527,10 +529,18 @@ class _StockPageState extends State<StockPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 1.0),
-          Text(
-            value,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              overflow: TextOverflow.visible,
+            ),
           ),
         ],
       ),
@@ -746,6 +756,51 @@ class _StockPageState extends State<StockPage> {
     );
   }
 
+  Widget _buildInfoDatesQuantityItem(String description, String value) {
+    String formattedValue = '0';
+
+    if (value != null && value != '0') {
+      double numericValue = double.tryParse(value.replaceAll(',', '.')) ?? 0;
+      if (numericValue >= 1000) {
+        formattedValue = numericValue.toStringAsFixed(0).replaceAllMapped(
+            RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.');
+        if (numericValue >= 1000000) {
+          formattedValue = formattedValue.replaceAllMapped(
+                  RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                  (Match m) => '${m[1]}.') +
+              'M';
+        }
+      } else {
+        formattedValue = value;
+      }
+    }
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.all(8.0),
+      decoration: BoxDecoration(
+        color: Colors.green,
+        borderRadius: BorderRadius.circular(8.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 1.0),
+          Text(
+            description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          Text(
+            formattedValue,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildInfoAverageItem(String description, String value) {
     return Container(
       width: double.infinity,
@@ -818,7 +873,7 @@ class _StockPageState extends State<StockPage> {
               'M';
         }
       } else {
-        formattedValue = numericValue.toString();
+        formattedValue = value;
       }
     }
     return Container(

@@ -103,6 +103,7 @@ class ApiService {
             'storeids': selectedStoreId,
           }));
 
+      print(response);
       if (response.statusCode == 200) {
         var decodedResponse = json.decode(response.body) as List<dynamic>;
         return decodedResponse;
