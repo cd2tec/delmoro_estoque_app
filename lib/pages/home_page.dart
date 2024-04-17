@@ -1,5 +1,5 @@
 import 'package:delmoro_estoque_app/pages/login_page.dart';
-import 'package:delmoro_estoque_app/widgets/widgets.dart';
+import 'package:delmoro_estoque_app/widgets/login/logo_user_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:collection/collection.dart';
@@ -60,28 +60,32 @@ class _HomePageState extends State<HomePage> {
         child: AppBar(
           backgroundColor: Colors.green,
           title: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
+              const CircleAvatar(
+                child: LogoUserWidget(),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const CircleAvatar(
-                    child: LogoUserWidget(),
+                  const Text(
+                    'Bem-vindo,',
+                    style: TextStyle(color: Colors.white),
                   ),
-                  const SizedBox(width: 10),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Bem-vindo,',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      Text(
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.6,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
                         extractUsername(widget.permissions),
                         style: const TextStyle(color: Colors.white),
+                        overflow: TextOverflow.visible,
+                        softWrap: true,
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
