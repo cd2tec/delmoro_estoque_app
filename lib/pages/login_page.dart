@@ -215,10 +215,10 @@ class _LoginPageState extends State<LoginPage> {
         final token = service.generateToken(
             _usernameController.text, _passwordController.text);
 
-        await DatabaseService.saveToken(_usernameController.text, token);
         final result = await service.login(
             _usernameController.text, _passwordController.text, token);
         if (result.success) {
+          await DatabaseService.saveToken(_usernameController.text, token);
           final receivedToken = result.token!;
           final userData = await apiService.getMe(receivedToken);
           final int userId = userData['id'];
@@ -279,7 +279,8 @@ class _LoginPageState extends State<LoginPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text('Erro de login'),
-          content: Text('Verifique suas credenciais.'),
+          content:
+              Text('Verifique suas credenciais. Usuário ou senha incorretos'),
           actions: [
             TextButton(
               onPressed: () {
