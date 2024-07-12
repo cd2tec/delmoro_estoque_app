@@ -1,8 +1,8 @@
 import 'package:delmoro_estoque_app/pages/login_page.dart';
-import 'package:delmoro_estoque_app/widgets/login/logo_user_widget.dart';
+import 'package:delmoro_estoque_app/utils/permissions_utils.dart';
+import 'package:delmoro_estoque_app/widgets/home/app_bar_widgter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
-import 'package:collection/collection.dart';
 import 'package:delmoro_estoque_app/services/api_service.dart';
 import 'package:delmoro_estoque_app/services/auth_service.dart';
 import 'package:flutter/services.dart';
@@ -55,45 +55,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
-        child: AppBar(
-          backgroundColor: Colors.green,
-          title: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const CircleAvatar(
-                child: LogoUserWidget(),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Bem-vindo,',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        extractUsername(widget.permissions),
-                        style: const TextStyle(color: Colors.white),
-                        overflow: TextOverflow.visible,
-                        softWrap: true,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
-        ),
-      ),
+      appBar: CustomAppBar(username: extractUsername(widget.permissions)),
       endDrawer: Drawer(
         backgroundColor: Colors.white,
         child: ListView(
@@ -375,57 +337,5 @@ class _HomePageState extends State<HomePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
     });
-  }
-
-  String extractUsername(List<dynamic> permissions) {
-    if (permissions.isNotEmpty) {
-      final firstPermission = permissions[0];
-
-      if (firstPermission.containsKey('name') &&
-          firstPermission['name'] is String) {
-        final username = firstPermission['name'];
-
-        return username;
-      }
-    }
-
-    return 'Usuário';
-  }
-
-  List<int> extractStoreIds(List<dynamic> permissions) {
-    if (permissions.isNotEmpty) {
-      final firstPermission = permissions[0];
-
-      if (firstPermission.containsKey('stores') &&
-          firstPermission['stores'] is List) {
-        final stores = firstPermission['stores'] as List<dynamic>;
-
-        return stores.map<int>((store) => store['id'] as int).toList();
-      }
-    }
-
-    return [];
-  }
-
-  List<Map<String, dynamic>> extractStoreIdAndName(List<dynamic> permissions) {
-    List<Map<String, dynamic>> storeInfo = [];
-
-    if (permissions.isNotEmpty) {
-      final firstPermission = permissions[0];
-
-      if (firstPermission.containsKey('stores') &&
-          firstPermission['stores'] is List) {
-        final stores = firstPermission['stores'] as List<dynamic>;
-
-        storeIdAndName = stores.map<Map<String, dynamic>>((store) {
-          return {
-            'id': store['id'],
-            'storename': store['storename'],
-          };
-        }).toList();
-      }
-    }
-
-    return storeIdAndName;
   }
 }
