@@ -1,4 +1,5 @@
-import 'package:delmoro_estoque_app/widgets/stock/average_item_info_widget.dart';
+import 'package:delmoro_estoque_app/widgets/stock/pending_request_item_balance_widget.dart';
+import 'package:delmoro_estoque_app/widgets/stock/pending_request_item_widget.dart';
 import 'package:flutter/material.dart';
 
 class PendingRequestWidget extends StatelessWidget {
@@ -30,16 +31,12 @@ class PendingRequestWidget extends StatelessWidget {
                 color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
           ),
           const SizedBox(height: 1.0),
-          AverageItemInfoWidget(
-              description: 'Média Venda Diária',
-              value: stockItem['mediavendadiaria'] ?? 'N/A'),
-          AverageItemInfoWidget(
-              description: 'Média Venda Semanal',
-              value: stockItem['mvendasemana'] ?? 'N/A'),
-          AverageItemInfoWidget(
-              description: 'Média Venda Mensal',
-              value: stockItem['mvendames'] ?? 'N/A'),
-          //  _buildInfoAverageItem('Cobertura de Estoque', value)
+          PendingRequestItemBalanceWidget(
+              description: 'Quantidade Saldo Pedido',
+              value: stockItem['qtdsaldotransito'] ?? 'N/A'),
+          PendingRequestItemInfoWidget(
+              description: 'Data Emissão Pedido',
+              value: stockItem['dtaemissaotransito'] ?? 'N/A'),
         ],
       ),
     );
