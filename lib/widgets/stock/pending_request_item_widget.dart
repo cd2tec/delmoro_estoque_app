@@ -1,11 +1,11 @@
 import 'package:delmoro_estoque_app/utils/format_dates_utils.dart';
 import 'package:flutter/material.dart';
 
-class AverageItemInfoWidget extends StatelessWidget {
+class PendingRequestItemInfoWidget extends StatelessWidget {
   final String description;
   final String value;
 
-  const AverageItemInfoWidget(
+  const PendingRequestItemInfoWidget(
       {Key? key, required this.description, required this.value})
       : super(key: key);
 
